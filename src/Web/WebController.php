@@ -181,8 +181,10 @@ final class WebController
         $id = (int) $conversation['id'];
         $requestId = (int) ($request->post['id'] ?? 0);
         if ($which === 'turn-away') {
-            $this->joinCodes->decline($id, $requestId);
-            $this->redirect($key, 'join-declined');
+            $done = ($request->post['all'] ?? '') === '1'
+                ? $this->joinCodes->declineAll($id) > 0
+                : $this->joinCodes->decline($id, $requestId);
+            $this->redirect($key, $done ? 'join-declined' : 'decided'); // term-a #44: no "declined" for a no-op
 
             return;
         }

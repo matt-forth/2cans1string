@@ -110,3 +110,23 @@ test('join code: at most 10 waiting requests per board', function (): void {
         has(call('/join', 'POST', ['code' => currentCode($id), 'name' => 'one-more']), 'Too many requests are waiting on this board.');
     });
 });
+
+test('join code: Decline all clears junk in one click; a no-op decline says "already dealt with" (term-a #44)', function (): void {
+    withWebBoard(function (int $id, string $watch): void {
+        call($watch . '/code', 'POST', ['do' => 'start']);
+        foreach (['junk-a', 'junk-b', 'junk-c'] as $name) {
+            call('/join', 'POST', ['code' => currentCode($id), 'name' => $name]);
+        }
+        has(call($watch), 'Decline all 3</button>');
+        call($watch . '/turn-away', 'POST', ['all' => '1']);
+        eq(0, (int) testDb()->run("SELECT COUNT(*) FROM join_requests WHERE conversation_id = ? AND status = 'waiting'", [$id])->fetchColumn());
+        hasNot(call($watch), 'Asking to join');
+
+        withWebBoard(function (int $otherId, string $otherWatch) use ($id): void {
+            $requestId = (string) testDb()->run('SELECT id FROM join_requests WHERE conversation_id = ? LIMIT 1', [$id])->fetchColumn();
+            testDb()->run("UPDATE join_requests SET status = 'waiting' WHERE id = ?", [$requestId]);
+            call($otherWatch . '/turn-away', 'POST', ['id' => $requestId]);
+            eq('waiting', testDb()->run('SELECT status FROM join_requests WHERE id = ?', [$requestId])->fetchColumn(), "another board's owner can't decide it");
+        });
+    });
+});

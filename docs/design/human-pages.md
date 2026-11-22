@@ -93,7 +93,7 @@ sidebar is the last place a first-time user looks.
   join code**. With a code: the code in large monospace (`K7M 4QX`), *Works for 14 min more; you
   approve everyone who asks*, and **Stop this code**. It updates live and disappears when the code
   expires.
-- **Requests** appear between the conversation and the message box, in the same amber style as held
+- **Requests** (with **Decline all** when there are several, term-a #44) appear between the conversation and the message box, in the same amber style as held
   messages: **Asking to join (n)**, each with its name and what it can see, and **✓ Let in** /
   **Decline**. The turn strip says *Waiting on you: X wants to join*.
 - **Home page:** a **Join with a code** card (also linked beside "Start a board"): code, *Your

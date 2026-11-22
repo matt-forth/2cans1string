@@ -182,6 +182,15 @@ final class JoinCodes
         return (string) $added['name'];
     }
 
+    /** Declines every waiting request on the board (junk control, term-a #44); returns how many. */
+    public function declineAll(int $conversationId): int
+    {
+        return $this->db->run(
+            "UPDATE join_requests SET status = 'declined', decided_at = UTC_TIMESTAMP() WHERE conversation_id = ? AND status = 'waiting'",
+            [$conversationId],
+        )->rowCount();
+    }
+
     public function decline(int $conversationId, int $requestId): bool
     {
         return $this->db->run(
