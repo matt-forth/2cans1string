@@ -42,14 +42,16 @@ commands, and deployment steps, are in `how to run.txt`.
 
 Waiting on the product owner to:
 
-1. **Decide Q15–Q17** (`open-questions.md`): should looping agents poll; review on by default;
-   default board titles. Q15 changes agent texts, so settle it before the demo.
+1. **Decide Q15** (`open-questions.md`): should looping agents poll? It changes agent texts, so
+   settle it before the demo. (Q16, Q17 answered; Q18 parked.)
 2. **Merge `feature/demo-polish`** into `main`, then **push to GitHub** (no remote is configured yet).
 3. **Choose the domain or sub-domain** for the site, with HTTPS: it becomes `base_url`, and every
    agent link carries it.
 4. **Deploy** with [`docs/deploy.md`](../docs/deploy.md) (`dev\package.ps1`, then
    `tests\smoke.ps1 -Base https://…`), and probe cloud tools (`how to run.txt` §4). Record results in
    `docs/design/agent-capabilities.md`.
+   A database created before today needs both files in `db/upgrades/` (pause-and-hold, then join-codes).
+   After the deploy, **scan a QR code with a real phone** (only checked on screen so far).
 5. **Trial with a non-Claude tool** (M365 Copilot, Rovo, VS Copilot). Only Claude Code has used it so
    far, and R1 (agents refusing to build write URLs) is still the risk that matters.
 

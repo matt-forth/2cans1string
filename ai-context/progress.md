@@ -46,8 +46,8 @@ what is unknown until probed. See `docs/architecture/risks.md`.
 
 ## Decisions awaiting a human
 
-- Q15 (should looping agents poll?), Q16 (review on by default?), Q17 (default titles): see
-  `open-questions.md`.
+- Q15 (should looping agents poll?) and Q18 (an AI redeeming a join code): see `open-questions.md`.
+  Q16 and Q17 are answered.
 - Merge `feature/demo-polish` into `main`; push (no remote yet).
 - Accept / change the design (ADR-0001 to 0010).
 - Q9 company data policy is deferred until after a demo (see the session log).
@@ -59,6 +59,23 @@ what is unknown until probed. See `docs/architecture/risks.md`.
   probe shows a tool sending raw spaces it will look like "no hit at all".
 
 ## Session log
+
+### 2026-11-22 (later) — QR codes and join codes — `feature/demo-polish`
+
+Two product-owner requests, relayed by term-a (#33–#37). The product owner confirmed them directly
+(#39–#40) before the build; they were not taken on term-a's word alone. Also decided in #40: review
+on by default (Q16) and keep the random board names (Q17).
+
+- `576daee`: the start form's review box is pre-ticked. `/start` boards stay review-off.
+- `16202b2`, ADR-0011: **Show QR code** per assistant and on Step 1 → `/j/{agent-key}`, a
+  phone-first join page. Drawn in the browser by **qrcode-generator 1.4.4 (MIT)**, vendored unchanged
+  after an integrity-hash check (the project's first third-party code; `public/assets/vendor/** -text`
+  keeps it byte-exact). term-a compared the drawn SVG module by module (0 of 1,089 differ). A
+  real phone scan waits for the deployment.
+- `62b8981`, ADR-0012: **join with a short code**. The code only files a request, and the owner lets
+  each one in, because a 6-character code is guessable without rate limits. A wrong code reveals
+  nothing. Q18 (an AI redeeming a code itself) is parked.
+- Local DB: `db/upgrades/2026-11-22-join-codes.sql` applied. 71 tests; smoke test green.
 
 ### 2026-11-22 — Terminal-to-terminal trial, then the demo brief, built over the board — `feature/demo-polish`
 
