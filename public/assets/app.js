@@ -67,6 +67,12 @@
   document.addEventListener('click', function (e) {
     var button = e.target.closest('[data-copy]');
     if (button) copy(button.getAttribute('data-copy'), button);
+    var more = e.target.closest('[data-show-more]');
+    if (more) {
+      var body = more.previousElementSibling;
+      var clamped = body.classList.toggle('clamp');
+      more.textContent = clamped ? 'Show more' : 'Show less';
+    }
   });
 
   document.addEventListener('submit', function (e) {
@@ -116,6 +122,34 @@
   recentBoards.unshift({ key: key, title: title, url: location.origin + location.pathname, at: Date.now() });
   writeRecent(recentBoards);
 
+  // The composer stays one line until it's used (term-a #21): it grows on focus, or while it has text.
+  var composer = $('[data-composer]', watch);
+  var composerBox = composer && $('textarea', composer);
+  function markText() { composer.classList.toggle('has-text', composerBox.value.trim() !== ''); }
+  if (composerBox) { composerBox.addEventListener('input', markText); markText(); }
+
+  // New messages (term-a #22): if the newest message was in view, bring the new one fully into view
+  // above the sticky composer; otherwise offer a "New message" pill rather than yanking the page.
+  var pill = $('[data-new-pill]', watch);
+  function lastMessage() { var all = $all('.msg', messages); return all[all.length - 1] || null; }
+  function newestInView() {
+    var last = lastMessage();
+    if (!last) return true;
+    var limit = composer ? composer.getBoundingClientRect().top : window.innerHeight;
+    return last.getBoundingClientRect().bottom <= limit + 40;
+  }
+  function showNewest() {
+    var last = lastMessage();
+    if (!last) return;
+    last.style.scrollMarginBottom = ((composer ? composer.offsetHeight : 0) + 16) + 'px';
+    last.scrollIntoView({ block: 'end', behavior: 'smooth' });
+    pill.hidden = true;
+  }
+  if (pill) {
+    pill.addEventListener('click', showNewest);
+    window.addEventListener('scroll', function () { if (!pill.hidden && newestInView()) pill.hidden = true; }, { passive: true });
+  }
+
   var lastSeq = parseInt(watch.getAttribute('data-last-seq'), 10) || 0;
   var unseen = 0;
   var messages = $('[data-messages]', watch);
@@ -158,12 +192,14 @@
           return; // stop polling
         }
         if (data.messagesHtml) {
+          var wasInView = newestInView();
           var holder = document.createElement('div');
           holder.innerHTML = data.messagesHtml;
           $all('.msg', holder).forEach(function (m) { m.classList.add('fresh'); messages.appendChild(m); });
           localiseTimes(messages);
           $('[data-empty]', watch).hidden = true;
           if (document.hidden) { unseen += data.newCount; setTitle(); }
+          if (wasInView) showNewest(); else if (pill) pill.hidden = false;
         }
         lastSeq = data.lastSeq;
         if (data.participantsHtml !== lastParticipants) { lastParticipants = data.participantsHtml; replaceKeepingOpen(participants, data.participantsHtml); }

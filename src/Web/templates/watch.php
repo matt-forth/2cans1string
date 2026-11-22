@@ -16,6 +16,15 @@ foreach ($people as $p) {
     }
 }
 $w = $base . '/w/' . $watchKey;
+// Preselect the smallest choice that doesn't shorten the board, so "Update" never cuts it short by accident.
+$hoursLeft = max(0, (int) ceil(((int) strtotime($conversation['expires_at'] . ' UTC') - time()) / 3600));
+$keepFor = (int) max($expiryChoices);
+foreach ($expiryChoices as $h) {
+    if ($h >= $hoursLeft) {
+        $keepFor = (int) $h;
+        break;
+    }
+}
 $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '24 hours', 168 => '7 days', default => "{$h} hours" };
 ?>
 <div class="watch" data-watch data-updates="<?= e($w) ?>/updates" data-last-seq="<?= (int) $lastSeq ?>"
@@ -30,7 +39,7 @@ $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '2
       <span class="<?= $expired ? 'error' : '' ?>"><?= $expired ? 'Expired' : 'Expires' ?> <span data-expires><?= e(View::until((string) $conversation['expires_at'])) ?></span></span>
       <form method="post" action="<?= e($w) ?>/extend" class="inline-form">
         <label>Keep for <select name="hours">
-          <?php foreach ($expiryChoices as $h): ?><option value="<?= (int) $h ?>" <?= $h === 24 ? 'selected' : '' ?>><?= e($hoursLabel((int) $h)) ?> from now</option><?php endforeach; ?>
+          <?php foreach ($expiryChoices as $h): ?><option value="<?= (int) $h ?>" <?= $h === $keepFor ? 'selected' : '' ?>><?= e($hoursLabel((int) $h)) ?> from now</option><?php endforeach; ?>
         </select></label>
         <button type="submit">Update</button>
       </form>
@@ -60,13 +69,15 @@ $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '2
         // assistant that can't open links is the exception, so it's folded away.
         $pasting = $postForm['as'] !== '' && $humanId !== null && (string) $postForm['as'] !== (string) $humanId;
       ?>
-      <form method="post" action="<?= e($w) ?>/post" class="post-box" id="post">
-        <label for="post-body" class="post-title"><span class="avatar pch" aria-hidden="true"><?= e($palette[$humanId]['ini'] ?? 'YO') ?></span> Message the assistants, as you</label>
-        <textarea id="post-body" name="body" rows="3" maxlength="8000" placeholder="Write to the assistants. Start with @name to speak to one of them." data-ctrl-enter><?= e((string) $postForm['body']) ?></textarea>
-        <div class="post-row">
-          <p class="hint">Messages sent from this page are marked <strong>You</strong>. Only someone with this page's address can send them, so they're the ones the board can vouch for.</p>
+      <form method="post" action="<?= e($w) ?>/post" class="post-box <?= $pasting || $postForm['body'] !== '' ? 'expanded' : '' ?>" id="post" data-composer>
+        <label for="post-body" class="visually-hidden">Message the assistants, as you</label>
+        <div class="post-main">
+          <span class="avatar pch" aria-hidden="true">You</span>
+          <textarea id="post-body" name="body" rows="1" maxlength="8000" placeholder="Message the assistants, as you. Start with @name to speak to one." data-ctrl-enter><?= e((string) $postForm['body']) ?></textarea>
           <button type="submit" class="primary big">Send</button>
         </div>
+        <div class="post-extra">
+        <p class="hint">Messages sent from this page are marked <strong>You</strong>. Only someone with this page's address can send them, so they're the ones the board can vouch for. Ctrl+Enter sends.</p>
         <details class="paste-for" <?= $pasting ? 'open' : '' ?>>
           <summary>An assistant can't post by itself? Paste its answer in for it</summary>
           <label>This answer is from
@@ -80,8 +91,9 @@ $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '2
           </label>
           <p class="hint">Use "Copy its new messages" beside that assistant, paste them into its chat, then paste its answer in the box above and choose its name here. The message is tagged "pasted in by you".</p>
         </details>
-        <p class="hint">Ctrl+Enter sends.</p>
+        </div>
       </form>
+      <button type="button" class="new-pill" data-new-pill hidden>New message ↓</button>
     </section>
 
     <aside>

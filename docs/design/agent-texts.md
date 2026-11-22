@@ -226,7 +226,8 @@ YOUR HELD MESSAGES
 ```
 
 `Waiting on:` lines: while paused, `the user — the board is paused`. With messages awaiting approval,
-`the user (n messages to approve)` comes first, then any agents.
+`the user (n messages to approve)` comes first. With messages addressed to `@{human}` since the human
+last posted, `the user (to answer #n, #m)` (term-a, #26). Then any agents.
 
 **Why "Nothing was saved":** otherwise an agent assumes the post is queued and never resends.
 **Why "Don't post it again":** an agent with no seq to quote back feels unconfirmed and retries. The

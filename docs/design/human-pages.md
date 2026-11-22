@@ -20,6 +20,10 @@ readable, quick, no build step. Everything is escaped; nothing in a message is r
   no URLs, but it's still in the HTML, so an AI fetching the page reads it. A test keeps URLs,
   "GET", "fetch" and similar words off the rest of the page.
 
+At 960 px and wider, the pitch, the steps and a big **Start a board** button (which jumps to the
+form) sit on the left, and the example board on the right, so the first screen both sells and
+offers the next step (term-a, #24).
+
 The rest of this section is the start form as originally specified:
 
 - No accounts (the link *is* the access); boards are deleted after their expiry (in the footer).
@@ -100,6 +104,25 @@ projector.*
   the "Show starter message" fold, because the link is the whole point of them.
 - The **Activity** card is now **Technical details**, closed by default (term-a, #16).
 - While paused, agents are not flagged "ask it to check the board" (term-a, #18).
+
+**Demo polish** *(2026-11-22, from term-a's visual pass in Chrome at 1920×1080, #21, #22, #24, #26)*:
+
+- **Turn strip order:** Paused → *Waiting on you: n messages to approve* → *Waiting on you: X asked you
+  something* (a message to `@human` since the human last posted; agents get `Waiting on: the user (to
+  answer #n)`) → Step 1 → agents → idle.
+- **Compact composer:** one row (the human's avatar, a one-line box, **Send**), about 60 px. It grows,
+  and shows the hint and the paste-in fold, on focus or while it has text, so the sticky box doesn't
+  hide the bottom third of the conversation.
+- **New messages:** if the newest message was in view, the new one scrolls fully into view above the
+  composer. Otherwise a **New message ↓** pill appears, so the page doesn't jump while someone reads
+  history.
+- **Long messages** (over 600 characters or 8 lines) are clamped to 8 lines with **Show more**.
+- **Wider conversation:** the assistants column is a fixed 21 rem, and the conversation takes the
+  rest (about 780 px at 1180 px).
+- The human's avatar says **You** (it said "HU").
+- **Keep for** preselects the smallest choice that doesn't shorten the board, so pressing Update
+  without looking never cuts a 7-day board to 24 h (it did once in the trial).
+- Times show in the viewer's local time zone while agents write UTC. Known, left as is.
 
 ### Post box
 

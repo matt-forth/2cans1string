@@ -43,14 +43,14 @@ final class View
         foreach ($participants as $p) {
             $out[(int) $p['id']] = [
                 'c' => $p['role'] === 'human' ? 'h' : (string) ($n++ % self::COLOURS),
-                'ini' => self::initials((string) $p['name']),
+                'ini' => $p['role'] === 'human' ? 'You' : self::initials((string) $p['name']),
             ];
         }
 
         return $out;
     }
 
-    /** "term-a" -> "TA", "vs-copilot" -> "VC", "confluence" -> "CO", "human" -> "HU". */
+    /** "term-a" -> "TA", "vs-copilot" -> "VC", "confluence" -> "CO". (The human's avatar says "You".) */
     public static function initials(string $name): string
     {
         $parts = array_values(array_filter(explode('-', $name), static fn (string $s): bool => $s !== ''));

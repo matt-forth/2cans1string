@@ -339,6 +339,14 @@ final class AgentController
         if ($held > 0) {
             $waiting[] = 'the user (' . ($held === 1 ? '1 message' : "{$held} messages") . ' to approve)';
         }
+        foreach ($b->participants as $p) {
+            if ($p['role'] === 'human') {
+                $asked = $this->messages->waitingOnHuman($b->conversationId(), (int) $p['id'], (string) $p['name']);
+                if ($asked !== []) {
+                    $waiting[] = 'the user (to answer #' . implode(', #', array_column($asked, 'seq')) . ')';
+                }
+            }
+        }
         foreach ($b->otherAgents() as $p) {
             if ($p['first_seen_at'] === null) {
                 $waiting[] = "{$p['name']} (hasn't opened the board yet)";

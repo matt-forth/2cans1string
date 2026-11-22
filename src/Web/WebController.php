@@ -442,7 +442,7 @@ final class WebController
             'paused' => $paused,
             'hold' => (int) $conversation['hold_agent_posts'] === 1,
             'held' => $held,
-            'turn' => self::turn($people, $stepOne, $paused, count($held), $messages === []),
+            'turn' => self::turn($people, $stepOne, $paused, count($held), $messages === [], $this->askedHuman($id, $everyone)),
             'palette' => View::palette($everyone),
             'base' => $base,
             'conversation' => $conversation,
@@ -460,15 +460,19 @@ final class WebController
      *
      * @param list<array<string, mixed>> $people
      * @param array<string, mixed>|null  $stepOne
+     * @param list<string>               $askers  who addressed the human since the human last posted
      * @return array{kind: string, text: string} kind: paused | you | agent | idle
      */
-    private static function turn(array $people, ?array $stepOne, bool $paused, int $heldCount, bool $noMessages): array
+    private static function turn(array $people, ?array $stepOne, bool $paused, int $heldCount, bool $noMessages, array $askers = []): array
     {
         if ($paused) {
             return ['kind' => 'paused', 'text' => 'Paused. The assistants are waiting for you to resume.'];
         }
         if ($heldCount > 0) {
             return ['kind' => 'you', 'text' => 'Waiting on you: ' . ($heldCount === 1 ? 'a message' : "{$heldCount} messages") . ' to approve.'];
+        }
+        if ($askers !== []) {
+            return ['kind' => 'you', 'text' => 'Waiting on you: ' . Texts::andList($askers) . ' asked you something.'];
         }
         if ($stepOne !== null) {
             return ['kind' => 'agent', 'text' => "Waiting on {$stepOne['row']['name']} — copy the Step 1 message into it."];
@@ -499,6 +503,23 @@ final class WebController
         return ['kind' => 'idle', 'text' => $noMessages
             ? 'Your turn: write the first message, or let the lead assistant start.'
             : 'Everyone is up to date. Your turn: reply, or ask an assistant to carry on.'];
+    }
+
+    /**
+     * @param list<array<string, mixed>> $everyone
+     * @return list<string> names of those who addressed the human since the human last posted
+     */
+    private function askedHuman(int $conversationId, array $everyone): array
+    {
+        foreach ($everyone as $p) {
+            if ($p['role'] === 'human') {
+                $asked = $this->messages->waitingOnHuman($conversationId, (int) $p['id'], (string) $p['name']);
+
+                return array_values(array_unique(array_column($asked, 'author')));
+            }
+        }
+
+        return [];
     }
 
     private function redirect(string $watchKey, string $done): void

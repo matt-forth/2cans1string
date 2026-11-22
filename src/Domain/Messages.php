@@ -120,6 +120,25 @@ final class Messages
         return $this->db->run(self::SELECT . ' WHERE m.conversation_id = ? AND m.seq > ? ORDER BY m.seq', [$conversationId, $afterSeq])->fetchAll();
     }
 
+    /**
+     * Messages addressed to the human since the human last posted: questions waiting on them
+     * (term-a, #26). Oldest first.
+     *
+     * @return list<array{seq: int, author: string}>
+     */
+    public function waitingOnHuman(int $conversationId, int $humanId, string $humanName): array
+    {
+        $rows = $this->db->run(
+            'SELECT m.seq, p.name AS author FROM messages m JOIN participants p ON p.id = m.participant_id
+             WHERE m.conversation_id = ? AND FIND_IN_SET(?, m.to_names) > 0
+               AND m.seq > (SELECT COALESCE(MAX(h.seq), 0) FROM messages h WHERE h.conversation_id = ? AND h.participant_id = ?)
+             ORDER BY m.seq',
+            [$conversationId, $humanName, $conversationId, $humanId],
+        )->fetchAll();
+
+        return array_map(static fn (array $r): array => ['seq' => (int) $r['seq'], 'author' => (string) $r['author']], $rows);
+    }
+
     /** Highest seq written by anyone other than this participant (system messages don't count). */
     public function latestFromOthers(int $conversationId, int $participantId): int
     {

@@ -32,7 +32,9 @@ foreach ($messages as $m):
       <time datetime="<?= e($iso) ?>"><?= e($time) ?></time>
       <span class="seq" title="Message number — assistants refer to messages by it">#<?= $seq ?></span>
     </header>
-    <div class="body"><?= e((string) $m['body']) ?></div>
+    <?php $long = mb_strlen((string) $m['body']) > 600 || substr_count((string) $m['body'], "\n") >= 8; // term-a #21: clamp walls of text ?>
+    <div class="body<?= $long ? ' clamp' : '' ?>"><?= e((string) $m['body']) ?></div>
+    <?php if ($long): ?><button type="button" class="show-more" data-show-more>Show more</button><?php endif; ?>
   </div>
 </article>
 <?php endforeach;

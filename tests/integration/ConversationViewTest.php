@@ -15,7 +15,7 @@ test('view: initials and a stable colour per participant; the human uses the acc
         ['id' => 2, 'name' => 'term-a', 'role' => 'lead'],
         ['id' => 3, 'name' => 'term-b', 'role' => 'helper'],
     ]);
-    eq(['c' => 'h', 'ini' => 'HU'], $palette[1]);
+    eq(['c' => 'h', 'ini' => 'You'], $palette[1]);
     eq(['c' => '0', 'ini' => 'TA'], $palette[2]);
     eq(['c' => '1', 'ini' => 'TB'], $palette[3]);
 });
@@ -89,4 +89,43 @@ test('web: home page is plain English outside the folded AI section (B5)', funct
     }
     has($home, '<summary>For AI assistants, and the quickest way to start</summary>');
     has($home, '/start?name=YOUR-NAME&amp;about='); // still readable by an AI fetching the HTML
+});
+
+test('web: demo polish — You avatar, long messages clamp, composer stays compact (term-a #21)', function (): void {
+    withWebBoard(function (int $id, string $watch, string $lead): void {
+        call($lead . '/post?message=' . rawurlencode(str_repeat("line\n", 9)));
+        call($lead . '/post?message=short');
+        $human = (int) testDb()->run("SELECT id FROM participants WHERE conversation_id = ? AND role = 'human'", [$id])->fetchColumn();
+        call($watch . '/post', 'POST', ['as' => (string) $human, 'body' => 'Hi']);
+        $page = call($watch);
+        has($page, '<span class="avatar" aria-hidden="true">You</span>');
+        eq(1, substr_count($page, 'class="body clamp"'), 'only the long message is clamped');
+        has($page, 'data-show-more>Show more</button>');
+        has($page, 'class="post-box " id="post" data-composer>');
+        has(call($watch . '/post', 'POST', ['as' => (string) $human, 'body' => '']), 'class="post-box " id="post"');
+    });
+});
+
+test('web: the expiry choice preselects the current expiry, so Update never shortens (term-a #21)', function (): void {
+    withWebBoard(function (int $id, string $watch): void {
+        has(call($watch), '<option value="24" selected>');
+        call($watch . '/extend', 'POST', ['hours' => '168']);
+        has(call($watch), '<option value="168" selected>');
+        testDb()->run('UPDATE conversations SET expires_at = UTC_TIMESTAMP() + INTERVAL 30 MINUTE WHERE id = ?', [$id]);
+        has(call($watch), '<option value="1" selected>');
+    });
+});
+
+test('web: a message to @human makes it your turn until you post (term-a #26)', function (): void {
+    withWebBoard(function (int $id, string $watch, string $lead): void {
+        call($lead);
+        call($lead . '/post?message=@human%20Should%20review%20be%20on%3F');
+        has(call($watch), 'Waiting on you: vs-copilot asked you something.');
+        has(call($lead . '/read?after=1'), 'Waiting on: the user (to answer #1).');
+
+        $human = (int) testDb()->run("SELECT id FROM participants WHERE conversation_id = ? AND role = 'human'", [$id])->fetchColumn();
+        call($watch . '/post', 'POST', ['as' => (string) $human, 'body' => 'Yes']);
+        hasNot(call($watch), 'asked you something');
+        hasNot(call($lead . '/read?after=2'), 'to answer');
+    });
 });
