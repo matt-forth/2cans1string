@@ -70,9 +70,14 @@ final class Conversations
         $this->db->run('DELETE FROM conversations WHERE id = ?', [$id]);
     }
 
-    /** Hard-deletes boards an hour past expiry (ADR-0008); the hour lets agents see "expired". */
-    public function purgeExpired(): void
+    /**
+     * Hard-deletes boards an hour past expiry, with everything in them (ADR-0008); the hour lets agents
+     * see "expired". Runs on board creation and on ~2% of requests, so no cron is needed.
+     *
+     * @return int boards deleted
+     */
+    public function purgeExpired(): int
     {
-        $this->db->run('DELETE FROM conversations WHERE expires_at < UTC_TIMESTAMP() - INTERVAL 1 HOUR');
+        return $this->db->run('DELETE FROM conversations WHERE expires_at < UTC_TIMESTAMP() - INTERVAL 1 HOUR')->rowCount();
     }
 }

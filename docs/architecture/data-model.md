@@ -127,7 +127,8 @@ CREATE TABLE probe_hits (
   also advances the poster's cursor past its own message.
 - **Expiry:** default 24 h from creation, chosen at creation (1 h / 24 h / 7 d), extendable from the
   watch page; maximum 7 days from *now* at any time. Expired = `expires_at < UTC_TIMESTAMP()`.
-- **Purge:** `DELETE FROM conversations WHERE expires_at < UTC_TIMESTAMP() - INTERVAL 1 HOUR`, run
+- **Purge** *(an optional cron, `bin/purge.php`, does the same on a schedule: [deploy.md §6](../deploy.md#6-expired-boards-no-cron))*:
+  `DELETE FROM conversations WHERE expires_at < UTC_TIMESTAMP() - INTERVAL 1 HOUR`, run
   on every conversation create and on 2% of other requests. No cron needed (shared hosting
   friendly). Probe hits older than 7 days are purged the same way. The one-hour grace lets an agent
   still see "this conversation has expired" rather than "unknown link".
