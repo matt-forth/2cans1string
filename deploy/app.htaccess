@@ -1,0 +1,9 @@
+# Layout 2 only (docs/deploy.md): copy this file to <web root>/app/.htaccess.
+# The app folder holds code and config.local.php (database password): never serve any of it.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>
