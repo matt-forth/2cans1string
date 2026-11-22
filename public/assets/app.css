@@ -293,3 +293,18 @@ a.button.big { font-size: 1.15rem; padding: 0.7rem 1.6rem; }
 /* The turn strip stays on screen while you scroll (term-a #28): in a demo the action is at the bottom. */
 [data-turn] { position: sticky; top: 0; z-index: 2; padding-top: 0.4rem; background: var(--bg); }
 [data-turn] .turn { margin-bottom: 0.6rem; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06); }
+
+/* QR code panel (ADR-0011): big enough to scan off a projector */
+.qr-overlay { position: fixed; inset: 0; z-index: 10; background: rgba(0, 0, 0, 0.55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.qr-card { background: var(--surface); border-radius: 16px; padding: 1.4rem 1.6rem; max-width: 30rem; width: 100%; text-align: center; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35); }
+.qr-card h2 { margin: 0 0 0.8rem; font-size: 1.4rem; }
+.qr-code { background: #fff; border-radius: 8px; padding: 0.4rem; margin: 0 auto 0.8rem; width: min(22rem, 80vw); }
+.qr-code svg { display: block; width: 100%; height: auto; }
+.qr-warning { color: var(--nudge); font-weight: 600; }
+
+/* Join page (/j/…): phone first */
+.join { max-width: 36rem; margin: 1rem auto; }
+.join h1 { font-size: 1.6rem; }
+.join-steps { font-size: 1.1rem; padding-left: 1.3rem; }
+.join-steps li { margin-bottom: 0.4rem; }
+.join-copy { width: 100%; margin: 0.6rem 0 1rem; }

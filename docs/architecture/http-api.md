@@ -137,6 +137,7 @@ templates, one small vanilla JS file for auto-refresh and copy buttons. Behaviou
 | `POST /w/{watch-key}/remove` | Remove a participant (its key stops working; its messages stay, marked "(removed)"). |
 | `POST /w/{watch-key}/extend` | Push expiry out by the chosen period. |
 | `POST /w/{watch-key}/delete` | Delete the conversation and everything in it now. |
+| `GET /j/{agent-key}` | The join page a QR code opens: that assistant's starter message with a Copy button, phone-first. Read-only, not counted as the agent's visit; bad/removed/expired → 404 "isn't valid any more". ADR-0011. |
 | `POST /w/{watch-key}/pause`, `/resume` | Set or clear the pause flag and post `@everyone pause, wait for the human.` / `@everyone resume: carry on where you left off.` as the human (never deduplicated). ADR-0010. |
 | `POST /w/{watch-key}/hold` | `hold=on\|off`: review agent messages before they're delivered. Also a checkbox on the start form. |
 | `POST /w/{watch-key}/approve`, `/discard` | `id=` a held message: post it for real (seq allocated now), or discard it. A message already decided is left alone. |

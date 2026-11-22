@@ -110,6 +110,36 @@ final class WebController
         ], $this->config->baseUrl()));
     }
 
+    /**
+     * GET /j/{agent-key} — the phone-first page a QR code opens (ADR-0011): one assistant's starter
+     * message with a big Copy button. Holds the same capability as the agent link, nothing more. Does
+     * not count as the agent's visit. An unknown, removed or expired key says only "not valid".
+     */
+    public function join(Request $request, string $key): void
+    {
+        $me = Keys::isKey($key) ? $this->participants->findByAgentKey($key) : null;
+        if ($me === null || $me['removed_at'] !== null || (int) $me['expired'] === 1) {
+            Responses::html(View::page('join-gone', 'Join link not valid — 2 cans 1 string', [], $this->config->baseUrl()), 404);
+
+            return;
+        }
+        $inviter = '';
+        if ($me['invited_by'] !== null) {
+            foreach ($this->participants->inConversation((int) $me['conversation_id']) as $p) {
+                if ((int) $p['id'] === (int) $me['invited_by']) {
+                    $inviter = (string) $p['name'];
+                }
+            }
+        }
+        $prompt = Texts::starterPrompt($this->config->baseUrl(), $me, $me['goal'], $inviter);
+        Responses::html(View::page('join', 'Add ' . $me['name'] . ' — 2 cans 1 string', [
+            'name' => (string) $me['name'],
+            'title' => (string) $me['title'],
+            'about' => (string) ($me['about'] ?? ''),
+            'prompt' => $prompt,
+        ], $this->config->baseUrl()));
+    }
+
     /** GET /w/{key}/updates?after=n — the watch page's polling (JSON carrying server-rendered, escaped HTML). */
     public function updates(Request $request, string $key): void
     {
@@ -390,6 +420,7 @@ final class WebController
                 $inviter = $p['invited_by'] === null ? '' : (string) ($byId[(int) $p['invited_by']]['name'] ?? '');
                 $person['prompt'] = Texts::starterPrompt($base, $p, $conversation['goal'], $inviter);
                 $person['link'] = $base . '/a/' . $p['agent_key'];
+                $person['joinUrl'] = $base . '/j/' . $p['agent_key']; // what the QR code holds (ADR-0011)
                 $latest = $this->messages->latestFromOthers($id, (int) $p['id']);
                 $unread = array_values(array_filter(
                     $messages,

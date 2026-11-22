@@ -23,6 +23,7 @@ foreach ($people as $p):
     <div class="status"><?= e($p['status']) ?></div>
     <div class="actions">
       <button type="button" data-copy="<?= e($p['prompt']) ?>">Copy its starter message</button>
+      <button type="button" data-qr="<?= e($p['joinUrl']) ?>" data-qr-name="<?= e((string) $r['name']) ?>" title="For an AI app on a phone: scan, then copy the message there">Show QR code</button>
       <?php if ($p['copyForAgent'] !== ''): ?>
         <button type="button" data-copy="<?= e($p['copyForAgent']) ?>" title="For an assistant that can't open links: paste this into its chat, then paste its answer in below">Copy its new messages</button>
       <?php endif; ?>

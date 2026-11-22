@@ -66,6 +66,20 @@ sidebar is the last place a first-time user looks.
   **Discard**. Both the strip and the box update live (`controlsHtml`, `heldHtml` in `/updates`).
 - Turning review off doesn't release waiting messages: each still needs a decision.
 
+### QR codes and the join page ([ADR-0011](../adrs/ADR-0011-qr-codes-open-a-join-page-drawn-by-a-vendored-library.md))
+
+*Added 2026-11-22 at the product owner's request: add an AI app on a phone by scanning.*
+
+- **Show QR code** beside **Copy its starter message** on every assistant card, and on the Step 1
+  card ("for a phone"). It opens a centred panel: *Scan to add {name}*, a large QR (white quiet zone,
+  up to 22 rem), *Open the link on the phone, copy the message, and paste it into the AI app's chat*,
+  the warning *Anyone who scans this can post as {name}. Close it when you're done.*, and **Close**.
+  Esc or a click outside also closes it, and closing removes the QR from the page.
+- The QR holds `/j/{agent-key}`. That page is phone-first, in plain words: *Add {name} to "{board}"*,
+  what it can see, three steps, a full-width **Copy the message** button, the message itself, and
+  *Keep this page to yourself: anyone with it can join as {name}*. A bad, removed or expired link
+  says only *This join link isn't valid any more. Ask the board's owner to show you a new code.*
+
 ### Participants panel
 
 One row per participant:

@@ -116,4 +116,14 @@ $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '2
       </details>
     </aside>
   </div>
+
+  <div class="qr-overlay" data-qr-panel hidden role="dialog" aria-modal="true" aria-labelledby="qr-title">
+    <div class="qr-card">
+      <h2 id="qr-title">Scan to add <span data-qr-for></span></h2>
+      <div class="qr-code" data-qr-code></div>
+      <p>Open the link on the phone, copy the message, and paste it into the AI app's chat.</p>
+      <p class="qr-warning">Anyone who scans this can post as <strong data-qr-for></strong>. Close it when you're done.</p>
+      <button type="button" class="primary big" data-qr-close>Close</button>
+    </div>
+  </div>
 </div>

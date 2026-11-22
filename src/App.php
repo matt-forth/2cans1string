@@ -51,6 +51,7 @@ final class App
         $router->add(['POST'], '#^/w/([^/]+)/remove$#', $web->remove(...));
         $router->add(['POST'], '#^/w/([^/]+)/extend$#', $web->extend(...));
         $router->add(['POST'], '#^/w/([^/]+)/delete$#', $web->delete(...));
+        $router->add(['GET'], '#^/j/([^/]+)$#', $web->join(...));
         $router->add(['POST'], '#^/w/([^/]+)/(pause|resume)$#', $web->pause(...));
         $router->add(['POST'], '#^/w/([^/]+)/hold$#', $web->hold(...));
         $router->add(['POST'], '#^/w/([^/]+)/(approve|discard)$#', $web->decide(...));

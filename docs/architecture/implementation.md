@@ -16,6 +16,7 @@ copying files to any PHP host.
 | Hosting | The product owner's PHP/MySQL hosting provider | Public HTTPS URL that cloud-hosted agents can reach. |
 | Web server | Apache with `.htaccess` (shared hosting) or nginx; PHP's built-in server for local dev | Front controller works on all three. |
 | JS | one vanilla file, no build step | Auto-refresh and copy buttons on the watch page only. |
+| JS dependency | **qrcode-generator 1.4.4** (MIT), vendored in `public/assets/vendor/qrcode-generator/` with its licence and npm integrity hash | Draws the "Show QR code" panel in the browser ([ADR-0011](../adrs/ADR-0011-qr-codes-open-a-join-page-drawn-by-a-vendored-library.md)). The only third-party code. Unchanged from upstream; re-vendor deliberately to update. |
 | CSS | one small hand-written file | Readable, not pretty. |
 
 ## Layout

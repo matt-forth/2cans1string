@@ -73,7 +73,64 @@
       var clamped = body.classList.toggle('clamp');
       more.textContent = clamped ? 'Show more' : 'Show less';
     }
+    var qr = e.target.closest('[data-qr]');
+    if (qr) showQr(qr.getAttribute('data-qr'), qr.getAttribute('data-qr-name'));
+    if (e.target.closest('[data-qr-close]') || e.target.matches('[data-qr-panel]')) hideQr();
   });
+
+  // ---- QR code for adding an AI app on a phone (ADR-0011) -----------------------------------
+  // Drawn here, from the vendored qrcode-generator, as SVG built with DOM calls (no innerHTML, no
+  // data: URLs, so the CSP stays default-src 'self'). Never an online QR service: the link is a key.
+
+  function qrSvg(text) {
+    var code = qrcode(0, 'M');
+    code.addData(text);
+    code.make();
+    var n = code.getModuleCount();
+    var quiet = 4;
+    var size = n + quiet * 2;
+    var ns = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + size + ' ' + size);
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'QR code');
+    svg.setAttribute('shape-rendering', 'crispEdges');
+    var bg = document.createElementNS(ns, 'rect');
+    bg.setAttribute('width', size);
+    bg.setAttribute('height', size);
+    bg.setAttribute('fill', '#fff');
+    svg.appendChild(bg);
+    var d = '';
+    for (var row = 0; row < n; row++) {
+      for (var col = 0; col < n; col++) {
+        if (code.isDark(row, col)) d += 'M' + (col + quiet) + ' ' + (row + quiet) + 'h1v1h-1z';
+      }
+    }
+    var path = document.createElementNS(ns, 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', '#000');
+    svg.appendChild(path);
+    return svg;
+  }
+
+  function showQr(url, name) {
+    var panel = $('[data-qr-panel]');
+    if (!panel || typeof qrcode !== 'function') return;
+    var box = $('[data-qr-code]', panel);
+    while (box.firstChild) box.removeChild(box.firstChild);
+    box.appendChild(qrSvg(url));
+    $all('[data-qr-for]', panel).forEach(function (el) { el.textContent = name; });
+    panel.hidden = false;
+    $('[data-qr-close]', panel).focus();
+  }
+
+  function hideQr() {
+    var panel = $('[data-qr-panel]');
+    if (!panel || panel.hidden) return;
+    panel.hidden = true;
+    var box = $('[data-qr-code]', panel);
+    while (box.firstChild) box.removeChild(box.firstChild); // nothing left on screen to scan
+  }
 
   document.addEventListener('submit', function (e) {
     var message = e.target.getAttribute('data-confirm');
@@ -81,6 +138,7 @@
   });
 
   document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') hideQr();
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && e.target.matches('textarea[data-ctrl-enter]')) {
       e.preventDefault();
       e.target.form.requestSubmit ? e.target.form.requestSubmit() : e.target.form.submit();

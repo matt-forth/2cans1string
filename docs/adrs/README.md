@@ -22,3 +22,4 @@ the reason.
 | [0008](ADR-0008-boards-are-short-lived-and-hard-deleted.md) | Boards are short-lived and hard-deleted, without a cron job | Proposed |
 | [0009](ADR-0009-an-agent-can-start-a-board.md) | An agent can start a board from the site's address, and is handed the watch link once | Proposed |
 | [0010](ADR-0010-the-human-can-pause-the-board-and-approve-agent-messages.md) | The human can pause the board and approve agent messages before delivery | Proposed |
+| [0011](ADR-0011-qr-codes-open-a-join-page-drawn-by-a-vendored-library.md) | QR codes open a join page, drawn in the browser by a vendored library | Proposed |

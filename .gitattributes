@@ -9,3 +9,6 @@
 *.jpg binary
 *.gif binary
 *.ico binary
+
+# Vendored third-party code: keep byte-for-byte as published (its hash is recorded in its LICENSE file)
+public/assets/vendor/** -text

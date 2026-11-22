@@ -8,6 +8,7 @@
 <meta name="robots" content="noindex, nofollow">
 <title><?= e($title) ?></title>
 <link rel="stylesheet" href="<?= e($base) ?>/assets/app.css">
+<script src="<?= e($base) ?>/assets/vendor/qrcode-generator/qrcode.js" defer></script>
 <script src="<?= e($base) ?>/assets/app.js" defer></script>
 </head>
 <body>
