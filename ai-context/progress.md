@@ -60,6 +60,16 @@ what is unknown until probed. See `docs/architecture/risks.md`.
 
 ## Session log
 
+### 2026-11-23 (later) — Public and crawlable
+
+Product owner: the site is ready for the world, so make it crawlable by Google and Bing. Minimum
+change: `robots.txt` is an allow-list (`/`, `/how`, `/ai`, `/assets/`), and those three pages drop
+`X-Robots-Tag`/meta noindex (`Responses::*` and `View::page` take an `$indexable` flag, off by
+default). Board, agent, join, start and probe URLs stay blocked and noindex. Tests: `RobotsTest`
+(Google's longest-match semantics), `CrawlTest` (meta tag). Headers checked with curl locally.
+No passphrase (security-and-limits §6 updated with why). Not done: sitemap, meta description,
+canonical; Search Console / Bing Webmaster submission is the owner's.
+
 ### 2026-11-23 — Home copy, README, docs catch-up
 
 - Home page lede no longer says "at work" (product owner): *"Most of us use several AI assistants

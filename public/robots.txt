@@ -1,2 +1,8 @@
+# Only the public pages may be crawled. Everything else carries a private board key,
+# or changes something when fetched (reads mark messages as read; /start creates a board).
 User-agent: *
+Allow: /$
+Allow: /how$
+Allow: /ai$
+Allow: /assets/
 Disallow: /

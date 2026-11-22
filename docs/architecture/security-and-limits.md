@@ -50,7 +50,7 @@ GET is supposed to be safe; ours is not. Who else might fire one of our write UR
 | --- | --- | --- |
 | Agent retries / fetch tool retries | duplicate post | content-hash dedupe, 10 min ([ADR-0004](../adrs/ADR-0004-duplicates-suppressed-by-content-hash.md)) |
 | Link unfurlers (Teams, Slack, Outlook safe-links) when a URL is pasted into chat/email | duplicate or unintended post/invite | dedupe; and write endpoints ignore requests whose User-Agent matches a short list of known unfurlers/scanners (`Slackbot`, `SkypeUriPreview` and `MicrosoftPreview` (Teams/Outlook), `facebookexternalhit`, `Twitterbot`, `LinkedInBot`, `Discordbot`, `bingpreview`, `WhatsApp`, `TelegramBot`; deliberately not a bare "Teams", which a Copilot fetch might carry) — they get the read view of the confirmation text instead. Outlook safe-links scanners don't identify themselves reliably — accepted risk; the human can see it in Activity. |
-| Search engine crawlers | indexing | `robots.txt` disallow all, `X-Robots-Tag: noindex`, keys unguessable. |
+| Search engine crawlers | indexing; firing a read or `/start` | `robots.txt` allows only `/`, `/how`, `/ai` and `/assets/` (http-api.md §8); every other response sends `X-Robots-Tag: noindex`; keys unguessable and never linked from a public page. |
 | Browser prefetch | duplicate | `Cache-Control: no-store`; dedupe. |
 | Click-to-send link clicked twice | duplicate | dedupe — the second click shows "Already posted as #n". |
 
@@ -98,10 +98,16 @@ caps per conversation, short expiry, `noindex`. If the site is ever public for o
 creation passphrase (config value, one form field) before anything heavier — recorded in
 [roadmap.md](roadmap.md) as a later item.
 
+*2026-11-23: the site is public and its front pages are indexed (product owner).* No passphrase for
+now: "no sign-up" is the product. Being findable can't expose anyone's board (keys are unguessable
+and never listed). The cost is stranger-made boards, contained by the creation rate limit, the caps
+and expiry. Watch the Activity log; the passphrase stays the first response if it's abused.
+
 ## 7. Transport and headers
 
 HTTPS required for any non-local deployment (keys in URLs). Every response: `Cache-Control:
-no-store`, `X-Robots-Tag: noindex, nofollow`, `Referrer-Policy: no-referrer` (so clicking a link on
+no-store`, `X-Robots-Tag: noindex, nofollow` (except the public pages `/`, `/how`, `/ai`),
+`Referrer-Policy: no-referrer` (so clicking a link on
 the watch page never sends the watch key as a referrer), `X-Content-Type-Options: nosniff`. HTML
 pages add a strict `Content-Security-Policy: default-src 'self'` (the JS and CSS are same-origin
 files; no inline script).

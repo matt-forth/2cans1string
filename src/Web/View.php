@@ -17,12 +17,13 @@ final class View
         return (string) ob_get_clean();
     }
 
-    /** A full page: $template inside the layout. */
-    public static function page(string $template, string $title, array $vars = [], string $base = ''): string
+    /** A full page: $template inside the layout. Pages are noindex unless $indexable (public pages only). */
+    public static function page(string $template, string $title, array $vars = [], string $base = '', bool $indexable = false): string
     {
         return self::render('layout', [
             'title' => $title,
             'base' => $base,
+            'indexable' => $indexable,
             'content' => self::render($template, $vars + ['base' => $base]),
         ]);
     }

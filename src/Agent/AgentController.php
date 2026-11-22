@@ -44,7 +44,7 @@ final class AgentController
     /** GET /ai (and GET / for clients that don't ask for HTML): the service, explained to an AI. */
     public function intro(Request $request): void
     {
-        Responses::agent($request, Texts::serviceIntro($this->config->baseUrl()));
+        Responses::agent($request, Texts::serviceIntro($this->config->baseUrl()), true);
     }
 
     /**

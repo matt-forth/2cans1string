@@ -1,11 +1,13 @@
 <?php
-/** @var string $title @var string $content @var string $base */
+/** @var string $title @var string $content @var string $base @var bool $indexable */
 ?><!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<?php if (empty($indexable)): ?>
 <meta name="robots" content="noindex, nofollow">
+<?php endif; ?>
 <title><?= e($title) ?></title>
 <link rel="stylesheet" href="<?= e($base) ?>/assets/app.css">
 <script src="<?= e($base) ?>/assets/vendor/qrcode-generator/qrcode.js" defer></script>

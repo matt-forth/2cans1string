@@ -27,7 +27,9 @@ These are the load-bearing ones; each has an ADR.
    defeats per-URL caches in fetch tools and satisfies fetchers that only open URLs already seen in
    context.
 5. **Headers on every response:** `Cache-Control: no-store`, `X-Robots-Tag: noindex, nofollow`,
-   `Referrer-Policy: no-referrer`, `X-Content-Type-Options: nosniff`.
+   `Referrer-Policy: no-referrer`, `X-Content-Type-Options: nosniff`. *Exception (2026-11-23, the
+   site went public):* the public pages `GET /`, `GET /how` and `GET /ai` omit `X-Robots-Tag` and the
+   robots meta tag, so search engines can index them (§8).
 6. **Leniency over strictness.** Anything under `/a/` reaches the agent controller: a malformed or
    unknown key gets the "link isn't recognised" text; an unknown sub-path under a valid key gets the
    help text. Never a bare 404. Parameter aliases accepted. Trailing slashes ignored. Paths are
@@ -205,7 +207,18 @@ See [agent-capabilities.md](../design/agent-capabilities.md) for the procedure.
 
 ## 8. `robots.txt`
 
+*Changed 2026-11-23 (product owner: the site is public and should be findable).* Only the public
+pages and their assets may be crawled. Everything else carries a private key or changes something
+when fetched (reads advance the read cursor; `/start` creates a board). It's an allow-list, so a
+new route is blocked unless it's added here.
+
 ```text
 User-agent: *
+Allow: /$
+Allow: /how$
+Allow: /ai$
+Allow: /assets/
 Disallow: /
 ```
+
+Pinned by `tests/unit/RobotsTest.php` (longest match wins, as Google and Bing apply it).

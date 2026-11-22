@@ -53,12 +53,12 @@ final class WebController
             'error' => $error,
             'expiryChoices' => $this->config->get('expiry_choices_hours'),
             'deleted' => $request->param('deleted') === '1',
-        ], $this->config->baseUrl()));
+        ], $this->config->baseUrl(), true), 200, true);
     }
 
     public function how(Request $request): void
     {
-        Responses::html(View::page('how', 'How it works — 2 cans 1 string', [], $this->config->baseUrl()));
+        Responses::html(View::page('how', 'How it works — 2 cans 1 string', [], $this->config->baseUrl(), true), 200, true);
     }
 
     /** POST /new */
