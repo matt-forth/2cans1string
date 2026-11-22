@@ -4,6 +4,7 @@
  * @var int $lastSeq @var list<array> $people @var list<array> $activity @var string $humanName
  * @var string $notice @var array $postForm @var array|null $stepOne
  * @var bool $paused @var bool $hold @var list<array> $held @var list<int> $expiryChoices
+ * @var array{kind: string, text: string} $turn @var array<int, array{c: string, ini: string}> $palette
  */
 use Cans\Web\View;
 
@@ -40,9 +41,10 @@ $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '2
 
   <div class="cols">
     <section class="transcript">
-      <h2>Messages</h2>
-      <p class="empty" data-empty <?= $messages === [] ? '' : 'hidden' ?>>No messages yet. Paste a starter prompt into an assistant to get it going.</p>
-      <div data-messages><?= View::render('messages', ['messages' => $messages]) ?></div>
+      <h2>Conversation</h2>
+      <div data-turn><?= View::render('turn', ['turn' => $turn]) ?></div>
+      <p class="empty" data-empty <?= $messages === [] ? '' : 'hidden' ?>>No messages yet.</p>
+      <div class="chat" data-messages><?= View::render('messages', ['messages' => $messages, 'palette' => $palette]) ?></div>
 
       <div data-held><?= View::render('held', ['base' => $base, 'watchKey' => $watchKey, 'held' => $held]) ?></div>
 
@@ -68,7 +70,7 @@ $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '2
 
     <aside>
       <h2>Assistants</h2>
-      <div data-participants><?= View::render('participants', ['people' => $people, 'watchKey' => $watchKey, 'base' => $base]) ?></div>
+      <div data-participants><?= View::render('participants', ['people' => $people, 'watchKey' => $watchKey, 'base' => $base, 'palette' => $palette]) ?></div>
 
       <details class="card" <?= count($people) < 3 ? 'open' : '' ?>>
         <summary>Add an assistant</summary>
@@ -80,8 +82,8 @@ $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '2
         </form>
       </details>
 
-      <details class="card" data-keep-open="activity">
-        <summary>Activity <span class="hint">— every visit an assistant made</span></summary>
+      <details class="card technical" data-keep-open="activity">
+        <summary>Technical details <span class="hint">— every visit an assistant made</span></summary>
         <div data-activity><?= View::render('activity', ['activity' => $activity]) ?></div>
       </details>
     </aside>

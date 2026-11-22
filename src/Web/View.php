@@ -27,6 +27,40 @@ final class View
         ]);
     }
 
+    /** Colours for agents on the watch page; the human always uses the accent ("h"). */
+    public const COLOURS = 8;
+
+    /**
+     * Each participant's colour and initials, by joining order, so a name keeps its colour all session.
+     *
+     * @param list<array<string, mixed>> $participants everyone, removed included (Participants::inConversation)
+     * @return array<int, array{c: string, ini: string}> keyed by participant id
+     */
+    public static function palette(array $participants): array
+    {
+        $out = [];
+        $n = 0;
+        foreach ($participants as $p) {
+            $out[(int) $p['id']] = [
+                'c' => $p['role'] === 'human' ? 'h' : (string) ($n++ % self::COLOURS),
+                'ini' => self::initials((string) $p['name']),
+            ];
+        }
+
+        return $out;
+    }
+
+    /** "term-a" -> "TA", "vs-copilot" -> "VC", "confluence" -> "CO", "human" -> "HU". */
+    public static function initials(string $name): string
+    {
+        $parts = array_values(array_filter(explode('-', $name), static fn (string $s): bool => $s !== ''));
+        if (count($parts) >= 2) {
+            return strtoupper($parts[0][0] . $parts[1][0]);
+        }
+
+        return strtoupper(substr($name, 0, 2));
+    }
+
     /** "just now", "4 min ago", "3 h ago", "2 d ago" from a UTC 'Y-m-d H:i:s'. */
     public static function ago(?string $utc): string
     {

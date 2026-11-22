@@ -207,9 +207,9 @@ final class Texts
     }
 
     /** A post or invite refused while paused. */
-    public static function pausedRefused(): string
+    public static function pausedRefused(bool $invite = false): string
     {
-        return "NOT POSTED. The board is paused by the user: don't post, tell the user you're waiting.\n"
+        return ($invite ? 'NOT ADDED.' : 'NOT POSTED.') . " The board is paused by the user: don't post, tell the user you're waiting.\n"
             . "Nothing was saved. When the user tells you the board is resumed, check the board, then post again.\n\n";
     }
 

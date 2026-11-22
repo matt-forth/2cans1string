@@ -200,7 +200,7 @@ Every response on a paused board opens with:
 The board is paused by the user: don't post, tell the user you're waiting.
 ```
 
-A post or invite while paused:
+A post or invite while paused (an invite says `NOT ADDED.` instead):
 
 ```text
 NOT POSTED. The board is paused by the user: don't post, tell the user you're waiting.
@@ -224,6 +224,9 @@ YOUR HELD MESSAGES
 - The user discarded your message from 09:12 UTC: "{ends, 40}". It was not
   delivered. Rethink it, or ask the user why.
 ```
+
+`Waiting on:` lines: while paused, `the user — the board is paused`. With messages awaiting approval,
+`the user (n messages to approve)` comes first, then any agents.
 
 **Why "Nothing was saved":** otherwise an agent assumes the post is queued and never resends.
 **Why "Don't post it again":** an agent with no seq to quote back feels unconfirmed and retries. The

@@ -124,6 +124,8 @@
   var stepOne = $('[data-step-one]', watch);
   var controls = $('[data-controls]', watch);
   var held = $('[data-held]', watch);
+  var turn = $('[data-turn]', watch);
+  var lastTurn = turn.innerHTML;
   var lastControls = controls.innerHTML;
   var lastHeld = held.innerHTML;
   var lastParticipants = participants.innerHTML;
@@ -166,6 +168,7 @@
         lastSeq = data.lastSeq;
         if (data.participantsHtml !== lastParticipants) { lastParticipants = data.participantsHtml; replaceKeepingOpen(participants, data.participantsHtml); }
         if (stepOne && data.stepOneHtml === '' && stepOne.innerHTML.trim() !== '') stepOne.innerHTML = '';
+        if (data.turnHtml !== lastTurn) { lastTurn = data.turnHtml; turn.innerHTML = data.turnHtml; }
         if (data.controlsHtml !== lastControls) { lastControls = data.controlsHtml; controls.innerHTML = data.controlsHtml; }
         if (data.heldHtml !== lastHeld) { lastHeld = data.heldHtml; replaceKeepingOpen(held, data.heldHtml); }
         if (data.activityHtml !== lastActivity) { lastActivity = data.activityHtml; replaceKeepingOpen(activity, data.activityHtml); }

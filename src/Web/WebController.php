@@ -126,7 +126,8 @@ final class WebController
         Responses::json([
             'lastSeq' => $model['lastSeq'],
             'newCount' => count($new),
-            'messagesHtml' => $new === [] ? '' : View::render('messages', ['messages' => $new]),
+            'messagesHtml' => $new === [] ? '' : View::render('messages', ['messages' => $new, 'palette' => $model['palette']]),
+            'turnHtml' => View::render('turn', $model),
             'participantsHtml' => View::render('participants', $model),
             'stepOneHtml' => View::render('step-one', $model),
             'controlsHtml' => View::render('controls', $model),
@@ -384,7 +385,7 @@ final class WebController
             if ($p['removed_at'] !== null) {
                 continue;
             }
-            $person = ['row' => $p, 'status' => '', 'nudge' => false, 'prompt' => '', 'copyForAgent' => '', 'link' => ''];
+            $person = ['row' => $p, 'status' => '', 'nudge' => false, 'joined' => true, 'prompt' => '', 'copyForAgent' => '', 'link' => ''];
             if ($p['role'] !== 'human') {
                 $inviter = $p['invited_by'] === null ? '' : (string) ($byId[(int) $p['invited_by']]['name'] ?? '');
                 $person['prompt'] = Texts::starterPrompt($base, $p, $conversation['goal'], $inviter);
@@ -394,14 +395,16 @@ final class WebController
                     $messages,
                     static fn (array $m): bool => (int) $m['seq'] > (int) $p['last_read_seq'] && (int) ($m['participant_id'] ?? 0) !== (int) $p['id'],
                 ));
+                // Plain English for business viewers (B1); the seq detail is in Technical details.
                 if ($p['first_seen_at'] === null) {
-                    $person['status'] = "Hasn't opened the board yet — paste its starter prompt into it.";
+                    $person['status'] = "Hasn't joined yet — copy its starter message into it.";
                     $person['nudge'] = true;
+                    $person['joined'] = false;
                 } elseif ((int) $p['last_read_seq'] < $latest) {
-                    $person['status'] = "Hasn't read #{$latest} — ask it to check the board.";
+                    $person['status'] = 'Has a new message — ask it to check the board.';
                     $person['nudge'] = true;
                 } else {
-                    $person['status'] = 'Up to date' . ((int) $p['last_read_seq'] > 0 ? " (read up to #{$p['last_read_seq']})" : '') . '.';
+                    $person['status'] = 'Up to date.';
                 }
                 if ($unread !== []) {
                     $person['copyForAgent'] = "New messages on the board for you ({$p['name']}):\n\n"
@@ -422,11 +425,25 @@ final class WebController
             }
         }
 
+        $paused = $conversation['paused_at'] !== null;
+        $held = $this->held->waiting($id);
+        if ($paused) {
+            // "Ask it to check the board" would contradict the pause (term-a, #18).
+            foreach ($people as $i => $person) {
+                if ($person['nudge'] && $person['joined']) {
+                    $people[$i]['nudge'] = false;
+                    $people[$i]['status'] = 'Has a new message — it will see it after you resume.';
+                }
+            }
+        }
+
         return [
             'stepOne' => $stepOne,
-            'paused' => $conversation['paused_at'] !== null,
+            'paused' => $paused,
             'hold' => (int) $conversation['hold_agent_posts'] === 1,
-            'held' => $this->held->waiting($id),
+            'held' => $held,
+            'turn' => self::turn($people, $stepOne, $paused, count($held), $messages === []),
+            'palette' => View::palette($everyone),
             'base' => $base,
             'conversation' => $conversation,
             'watchKey' => (string) $conversation['watch_key'],
@@ -436,6 +453,52 @@ final class WebController
             'activity' => $this->activity->recent($id),
             'humanName' => $humanName,
         ];
+    }
+
+    /**
+     * The "whose turn is it" strip (B1): the one thing the room should look at next.
+     *
+     * @param list<array<string, mixed>> $people
+     * @param array<string, mixed>|null  $stepOne
+     * @return array{kind: string, text: string} kind: paused | you | agent | idle
+     */
+    private static function turn(array $people, ?array $stepOne, bool $paused, int $heldCount, bool $noMessages): array
+    {
+        if ($paused) {
+            return ['kind' => 'paused', 'text' => 'Paused. The assistants are waiting for you to resume.'];
+        }
+        if ($heldCount > 0) {
+            return ['kind' => 'you', 'text' => 'Waiting on you: ' . ($heldCount === 1 ? 'a message' : "{$heldCount} messages") . ' to approve.'];
+        }
+        if ($stepOne !== null) {
+            return ['kind' => 'agent', 'text' => "Waiting on {$stepOne['row']['name']} — copy the Step 1 message into it."];
+        }
+        $toJoin = [];
+        $toCheck = [];
+        foreach ($people as $p) {
+            if ($p['row']['role'] === 'human' || !$p['nudge']) {
+                continue;
+            }
+            if ($p['joined']) {
+                $toCheck[] = (string) $p['row']['name'];
+            } else {
+                $toJoin[] = (string) $p['row']['name'];
+            }
+        }
+        $parts = [];
+        if ($toCheck !== []) {
+            $parts[] = 'Waiting on ' . Texts::andList($toCheck) . ' — ask ' . (count($toCheck) === 1 ? 'it' : 'them') . ' to check the board.';
+        }
+        if ($toJoin !== []) {
+            $parts[] = ($toCheck === [] ? 'Waiting on ' : 'Also ') . Texts::andList($toJoin) . ' to join — copy ' . (count($toJoin) === 1 ? 'its' : 'each one\'s') . ' starter message into it.';
+        }
+        if ($parts !== []) {
+            return ['kind' => 'agent', 'text' => implode(' ', $parts)];
+        }
+
+        return ['kind' => 'idle', 'text' => $noMessages
+            ? 'Your turn: write the first message, or let the lead assistant start.'
+            : 'Everyone is up to date. Your turn: reply, or ask an assistant to carry on.'];
     }
 
     private function redirect(string $watchKey, string $done): void
@@ -460,7 +523,7 @@ final class WebController
             'paused' => 'Paused. The assistants are told to wait, and their posts are refused until you resume.',
             'resumed' => 'Resumed. Tell the assistants to check the board.',
             'hold-on' => "Review is on: assistants' messages wait for your approval before anyone sees them.",
-            'hold-off' => "Review is off: assistants' messages are delivered straight away. Any already waiting still need your decision.",
+            'hold-off' => "Review is off: assistants' messages are delivered straight away. Any already waiting still need your decision, and appear when you approve them, after anything posted meanwhile.",
             'approved' => 'Approved and delivered.',
             'discarded' => "Discarded. Its author will be told it wasn't delivered.",
             'decided' => 'That message was already dealt with.',

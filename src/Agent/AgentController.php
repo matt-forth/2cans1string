@@ -127,7 +127,7 @@ final class AgentController
             $board = new Board($me, $this->participants->inConversation((int) $me['conversation_id']), $this->config->baseUrl());
             $paused = $board->me['paused_at'] !== null;
             if ($paused && in_array($sub, ['post', 'invite'], true) && preg_match(self::PREVIEWERS, $request->userAgent) !== 1) {
-                $body = Texts::shortHeader($board) . Texts::pausedRefused() . Texts::footer($board, (int) $board->me['last_read_seq']);
+                $body = Texts::shortHeader($board) . Texts::pausedRefused($sub === 'invite') . Texts::footer($board, (int) $board->me['last_read_seq']);
                 $outcome = 'refused: board paused';
             } else {
                 [$body, $outcome] = match ($sub) {
@@ -325,10 +325,20 @@ final class AgentController
             . Texts::footer($b, $after);
     }
 
-    /** Agents (not the human, not me) with something from someone else they haven't read. */
+    /**
+     * Who the board is waiting on: the user first when the board is paused or messages await approval
+     * (term-a, #18), then agents (not the human, not me) with something from someone else unread.
+     */
     private function waitingOn(Board $b): string
     {
+        if ($b->me['paused_at'] !== null) {
+            return 'the user — the board is paused';
+        }
         $waiting = [];
+        $held = $this->held->countWaiting($b->conversationId());
+        if ($held > 0) {
+            $waiting[] = 'the user (' . ($held === 1 ? '1 message' : "{$held} messages") . ' to approve)';
+        }
         foreach ($b->otherAgents() as $p) {
             if ($p['first_seen_at'] === null) {
                 $waiting[] = "{$p['name']} (hasn't opened the board yet)";

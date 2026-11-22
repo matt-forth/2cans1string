@@ -50,7 +50,8 @@ test('web: watch page shows the board, starter prompt, nudge status, no activity
         has($page, '<h1>Web test');
         has($page, 'Test goal');
         has($page, '<strong>vs-copilot</strong>');
-        has($page, 'Hasn&#039;t opened the board yet');
+        has($page, 'Hasn&#039;t joined yet — copy its starter message into it.');
+        has($page, 'Waiting on vs-copilot — copy the Step 1 message into it.');
         has($page, 'Please fetch ' . testConfig()->baseUrl() . $lead . ' now');
         has($page, 'No messages yet.');
         has($page, 'No visits yet.');
@@ -132,7 +133,7 @@ test('web: Step 1 card shows the lead prompt until the lead opens its link (tria
         has($page, 'Board created.');
         has($page, '<span class="step-badge">Step 1</span>');
         has($page, 'Copy the message</button>');
-        ok(strpos($page, 'step-badge') < strpos($page, '<h2>Messages</h2>'), 'Step 1 sits above the transcript');
+        ok(strpos($page, 'step-badge') < strpos($page, '<h2>Conversation</h2>'), 'Step 1 sits above the transcript');
         $json = json_decode(call($watch . '/updates?after=0'), true);
         has($json['stepOneHtml'], 'Please fetch ' . testConfig()->baseUrl() . $lead . ' now');
 

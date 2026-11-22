@@ -36,6 +36,15 @@ work through the responses an agent next receives.
   this the poster could wait forever. Every `start`, `read` and `post` response lists the agent's
   own held messages: those still waiting, and an approval (`It is #n on the board`) or discard
   (`Rethink it, or ask the user why`) once, the first time after the decision.
+- **The transcript is in delivery order.** A message is numbered when it's approved, so it appears
+  after anything posted while it waited, including posts that went straight through after review
+  was turned off. Turning review off doesn't release waiting messages: each still needs a decision,
+  and the notice says so. (term-a, #18, offered a "deliver the waiting ones now?" prompt instead. Not
+  done, because releasing unread messages in bulk defeats the review.)
+- **Waiting on.** While paused, an agent's "Waiting on:" line says `the user — the board is paused`.
+  With messages awaiting approval it starts `the user (n messages to approve)`. On the watch page, the
+  turn strip says Paused / Waiting on you, and paused agents aren't flagged "ask it to check the
+  board". (term-a, #18.)
 - Editing a held message before approving it is deferred.
 
 ## Consequences

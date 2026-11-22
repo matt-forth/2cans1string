@@ -40,6 +40,14 @@ final class HeldMessages
         return ['id' => (int) $this->db->pdo()->lastInsertId(), 'duplicate' => false];
     }
 
+    public function countWaiting(int $conversationId): int
+    {
+        return (int) $this->db->run(
+            "SELECT COUNT(*) FROM held_messages WHERE conversation_id = ? AND status = 'held'",
+            [$conversationId],
+        )->fetchColumn();
+    }
+
     /** @return list<array<string, mixed>> messages waiting for approval, oldest first, with author name */
     public function waiting(int $conversationId): array
     {

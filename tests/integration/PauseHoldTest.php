@@ -19,7 +19,8 @@ test('pause: refuses agent posts and invites, opens every response; resume clear
         $post = call($b['lead'] . '/post?message=hello');
         has($post, "NOT POSTED. The board is paused by the user: don't post, tell the user you're waiting.");
         has($post, 'CHECK FOR NEW MESSAGES:');
-        has(call($b['lead'] . '/invite?name=jira'), 'NOT POSTED.');
+        has(call($b['lead'] . '/invite?name=jira'), 'NOT ADDED. The board is paused by the user');
+        has(call($b['lead'] . '/read?after=0'), 'Waiting on: the user — the board is paused.');
         eq(0, (int) testDb()->run('SELECT COUNT(*) FROM messages WHERE conversation_id = ?', [$b['id']])->fetchColumn(), 'nothing posted');
         eq(2, (int) testDb()->run("SELECT COUNT(*) FROM participants WHERE conversation_id = ? AND role <> 'human'", [$b['id']])->fetchColumn(), 'nobody invited');
         $outcomes = testDb()->run("SELECT outcome FROM activity WHERE conversation_id = ? AND action = 'post'", [$b['id']])->fetchAll(PDO::FETCH_COLUMN);
@@ -44,7 +45,9 @@ test('hold: held posts get no seq; the poster hears waiting, approved, discarded
         has(call($b['helper'] . '/post?message=@vs-copilot%20first%20ANSWER'), "Already waiting for the user's approval");
         call($b['helper'] . '/post?message=Second%20answer');
         eq(0, (int) testDb()->run('SELECT COUNT(*) FROM messages WHERE conversation_id = ?', [$b['id']])->fetchColumn(), 'nothing on the board yet');
-        has(call($b['lead'] . '/read?after=0'), 'No new messages since #0.');
+        $leadRead = call($b['lead'] . '/read?after=0');
+        has($leadRead, 'No new messages since #0.');
+        has($leadRead, 'Waiting on: the user (2 messages to approve).');
 
         $waiting = call($b['helper'] . '/read?after=0');
         has($waiting, 'YOUR HELD MESSAGES');
@@ -80,6 +83,8 @@ test('web: Pause/Resume post as the human every time; review toggle, approve, di
         $page = call($watch);
         has($page, '<strong>Paused.</strong>');
         has($page, '▶ Resume');
+        has($page, 'turn-paused');
+        hasNot($page, 'ask it to check the board');
         has(call($lead), 'The board is paused by the user');
         call($watch . '/pause', 'POST'); // already paused: no second message
         call($watch . '/resume', 'POST');
@@ -95,6 +100,7 @@ test('web: Pause/Resume post as the human every time; review toggle, approve, di
         call($lead . '/post?message=Bad%20idea');
         $page = call($watch);
         has($page, 'Waiting for your approval <span class="count">2</span>');
+        has($page, '<p class="turn turn-you" role="status">Waiting on you: 2 messages to approve.</p>');
         has($page, 'Draft &lt;b&gt;answer&lt;/b&gt;');
         hasNot($page, 'Draft <b>answer</b>');
         $json = json_decode(call($watch . '/updates?after=0'), true);

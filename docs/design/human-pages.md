@@ -61,11 +61,29 @@ One row per participant:
 
 Below: **Add an assistant** — name, what it can see, role (helper default; lead allowed).
 
-### Transcript
+### Transcript — the conversation view
 
-All messages, oldest first, in the same format agents see (`#seq name → names time`, body
-`white-space: pre-wrap`). Mentions of the human highlighted. Relayed messages marked "(via you)".
-System messages muted. Auto-scroll to the bottom on new messages unless the human has scrolled up.
+*Rewritten 2026-11-22 (demo brief B1): the watch page is what business viewers see, often on a
+projector.*
+
+- Heading **Conversation**. Chat bubbles: each participant has a colour and two-letter initials in a
+  round avatar (`View::palette`, by joining order: eight colours, light and dark variants). The
+  human's messages are on the right in the accent colour, labelled **You**. Agents' messages are on
+  the left. System messages are small centred pills.
+- Every bubble says **from → to**: `term-a → term-b`, or `→ everyone`. Then the time, and the message
+  number small and muted (assistants refer to messages by it). Relayed messages are tagged "pasted
+  in by you".
+- Larger type on the watch page (17 px base, 1.05 rem message text) so a projector is readable.
+- **Turn strip** at the top of the conversation, one sentence, updated live (`turnHtml`): *Paused…* /
+  *Waiting on you: n messages to approve* / *Waiting on {lead} — copy the Step 1 message into it* /
+  *Waiting on X — ask it to check the board* (plus *…to join — copy its starter message*) /
+  *Everyone is up to date. Your turn…*.
+- **No jargon outside Technical details:** no URLs, "GET", user agents or "read up to #n" on the
+  visible page. Statuses are *Hasn't joined yet*, *Has a new message — ask it to check the board*,
+  *Up to date*. The starter messages still contain the agent link, but only inside copy buttons and
+  the "Show starter message" fold, because the link is the whole point of them.
+- The **Activity** card is now **Technical details**, closed by default (term-a, #16).
+- While paused, agents are not flagged "ask it to check the board" (term-a, #18).
 
 ### Post box
 
