@@ -1,0 +1,38 @@
+The problem I want to build a solution for, as described by the person who would benefit from this solution:
+
+Context:
+
+1. I use various different tools at work (e.g. Confluence, visual studio, github, miro, copilot, office), and each of these tools has agentic AI capabilities.
+2. Different tools can see different things and can access and draw upon different information silos.  E.g. the confluence AI can draw on all the wonderful info in confluence and jira etc; the office copilot can draw upon most of that I think and all our sharepoint and onedrive stuff and meeting notes/transcripts and teams conversations etc; the visual studio / github copilot can draw apon all the amazing info in our code base, github repos, commit history etc etc.
+3. Where a particular AI can draw on that context, the more context it can draw upon the more amazing and helpful it is.  Conversely; the fact that for example the confluece AI can't see the source code, or the copilot/github ai not being able to see confluence, limits the respective ai's capabilities, it limits them, it prevents them from making use of a ton of really useful info.  E.g. imagine if the visual studio copilot ai could know/access everything in confluence!
+4. In a corporate world, getting e.g. the github copilot AI to have access to e.g. the confluence/jira information isn't easy.  Things like MCP tools are hard to get permission to connect etc.
+5. Slight topic change:  AI agents delegate work to other/child AI agents/sessions to handle specific subtasks and then report on their results when done.  A parent AI agent/model/context coordinates all that to bring it together into a single overall powerfull team effort.  It does this (if I understand correctly) at the most basic level by passing text conversations/instructions (plus supporting context info) to those child agents/sessions, and reading back the text that they respond with.
+6. Another slight topic change:  most Ai agents/models in all those various systems can make http GET requests to web sites to access web pages.  And in doing so they can pass query-string parameters with values in them.  So in theory a website that accepted GET HTTP requests with acertain query-string could effectively function lik a POST/PUT endpoint, but with using a simple GET verb.  To paraphrase an example:  GET mywebsite.com/messages/post?message=this-is-what-i-want-to-post&poster=[some-guid-here]&conversation=[some-other-guid-here].  And such a mechanism could be very easy for an Ai agent/chatbot to be able to post/write and read/get messages.  And by extension two different ai sessions/agents/models/conversations could use such a thing to be able to "talk" to each other, or to swap information or commands or instructions or results.  This could amost work sort of like a MCP connection, but without the MCP, just by using HTTP GET requests and sharing conversation identifiers between e.g. copilot and conf AI agents/conversations.
+
+
+My idea:
+
+I want to build a simple "ai-link" website that lets pople/ai agents have simple conversations with each other, wtihout requiring proper/deep interations, MCP servers etc.  "2 cans 1 string" so to speak :)
+
+An example of how it would work:
+
+scenario: I want to get copilot in visual studio to explore my app source code to figure out how to build a new feature.
+problem: my visual studio copilot knows all about my app' source code, change history etc, but it cant see anything in confluence/jira, and there is a ton of useful info there that it coul dbenefit from.
+solution: 
+1. I start a new "conversation" on my ai-link website, and get its conversation id link and give it to my visual studio (VS) copilot.
+2.  VS copilot queries the url and gets an initial prompt telling it that this is a scratchpad where it can exchange messages/instructions/etc with other AI's that I connect, in this case my conf/Jira AI.  And I tell VS AI that I want it to use this scratchpad to talk to my Conf AI, that I will separately give this scratchpad url to as well.
+3. VS copilot does a HTTP GET to the scratchpad url to write an initial instruction intended for the confluence AI, then tell sm to get the conf AI to read the url.
+4. I open confluence in a separate browser tab (most likely to the conf page relating to waht I am working on), and open the confluence aai and give it the scratchpad url and tell it to read the instructions there and post a response.  The instructions it reads will also explain to it how to reply my making a HTTP GET request with the rigth querystring to post a response.
+5.  The confluence AI does so.  I go back to VS copilot and tell it that confluence has replied, and from there thye start talking to each other.
+Thre shoyuld be sufficient prompting such that the VS AI and Confluence AI can "handshak" and understand that the copilot AI is calling the confluence AI as a chi;ld agent, it should give the confluence AI the relevant task to do (e.g. research xxxx) etc.
+
+This would make it really easy for eg my VS copilot AI to draw on the confluence AI and all the info in confluence and jira, or conversely if Im using the confluece AI to create solution dsign documents, the conflunce AI could query the copilot VS AI to ask questions about the code base etc.
+
+The ai-link website shouldn't require authentication - just knowing the guid for a conversation is sufficient for now, the conersations arent meant tobe long-lived.  
+Also, I might want more than 2 ai's in the one conversation, eg I might watn all of VS copilot, confluence and say office365 copilot all chatting in the conversation.
+
+What I want you to do:
+
+Design a simple initial implementation of this idea, that I can build and try out.  The website should use (if/as where needed) MySQL for a database and PHP for a server-side language.  Keep it simple for now.  Don't build it yet, just create a solution design, and write it to .md markdown file(s).  I'll review them and get a future claude session to actually build it.
+
+

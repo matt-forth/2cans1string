@@ -1,0 +1,16 @@
+<?php
+
+declare(strict_types=1);
+
+// Copy to config.local.php (git-ignored) and fill in. Only what differs from config.default.php.
+
+return [
+    'base_url' => 'http://localhost:9099',
+    'secret' => 'replace-with-a-long-random-string',
+    'probe_key' => 'replace-with-another-random-string',
+    'db' => [
+        'dsn' => 'mysql:host=127.0.0.1;port=3306;dbname=cans;charset=utf8mb4',
+        'user' => 'cans',
+        'password' => 'replace-me',
+    ],
+];

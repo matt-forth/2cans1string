@@ -1,0 +1,37 @@
+# Secrets and local config - DB credentials live in a local, untracked file
+.env
+.env.*
+!.env.example
+config.local.php
+*.local.php
+
+# Dependencies
+/vendor/
+node_modules/
+
+# Logs, caches, build output
+*.log
+logs/
+cache/
+/tmp/
+.phpunit.cache/
+.phpunit.result.cache
+coverage/
+
+# Database dumps
+*.sql.gz
+dump*.sql
+
+# Editors and OS
+.vs/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Claude Code per-user settings
+.claude/settings.local.json
