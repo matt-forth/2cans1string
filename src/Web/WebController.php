@@ -44,7 +44,7 @@ final class WebController
     public function home(Request $request, array $form = [], string $error = ''): void
     {
         Responses::html(View::page('home', '2 cans 1 string', [
-            'form' => $form + ['title' => BoardNames::random(), 'goal' => '', 'lead' => 'lead', 'about' => '', 'hours' => '24', 'hold' => false],
+            'form' => $form + ['title' => BoardNames::random(), 'goal' => '', 'lead' => 'lead', 'about' => '', 'hours' => '24', 'hold' => true],
             'error' => $error,
             'expiryChoices' => $this->config->get('expiry_choices_hours'),
             'deleted' => $request->param('deleted') === '1',

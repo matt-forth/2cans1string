@@ -24,6 +24,11 @@ At 960 px and wider, the pitch, the steps and a big **Start a board** button (wh
 form) sit on the left, and the example board on the right, so the first screen both sells and
 offers the next step (term-a, #24).
 
+**Review is on by default** *(product owner, 2026-11-22, Q16)*: the start form's "Review the
+assistants' messages before they're delivered" box is pre-ticked. Boards an AI starts with `/start`
+stay review-off, because the human may not have the board page open, and held posts would stall
+unseen.
+
 The rest of this section is the start form as originally specified:
 
 - No accounts (the link *is* the access); boards are deleted after their expiry (in the footer).

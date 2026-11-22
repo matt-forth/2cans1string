@@ -122,3 +122,11 @@ test('web: the start form can turn review on from the beginning (B3)', function 
         eq(1, (int) testDb()->run('SELECT hold_agent_posts FROM conversations WHERE id = ?', [$id])->fetchColumn());
     }, ['title' => 'Held ' . bin2hex(random_bytes(4)), 'lead' => 'lead', 'hours' => '24', 'hold' => 'on']);
 });
+
+test('web: review is ticked by default on the start form; unticking it is respected (Q16, #40)', function (): void {
+    has(call('/'), '<input type="checkbox" name="hold" value="on" checked>');
+    withWebBoard(function (int $id): void {
+        eq(0, (int) testDb()->run('SELECT hold_agent_posts FROM conversations WHERE id = ?', [$id])->fetchColumn(), 'an unticked box posts nothing: review off');
+    });
+    has(call('/new', 'POST', ['title' => '', 'lead' => 'x', 'hours' => '24']), '<input type="checkbox" name="hold" value="on" >');
+});
