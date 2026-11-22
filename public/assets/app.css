@@ -231,3 +231,18 @@ button.pause { border: 2px solid var(--nudge); color: var(--nudge); font-weight:
 .held-msg time { margin-left: auto; }
 .held-msg .body { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0.3rem 0 0.5rem; }
 .held-msg .actions { display: flex; gap: 0.6rem; }
+
+/* Home (B5): one-sentence pitch, three steps, an example board */
+.three-steps { list-style: none; padding: 0; margin: 1rem 0 1.5rem; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; max-width: 60rem; }
+.three-steps li { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 0.9rem 1rem; font-size: 1.02rem; }
+.three-steps strong { display: block; margin-bottom: 0.2rem; }
+.step-n { display: inline-flex; align-items: center; justify-content: center; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: var(--accent); color: var(--accent-fg); font-weight: 800; margin-bottom: 0.4rem; }
+.example { max-width: 46rem; margin-bottom: 1.5rem; }
+.example-chat { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 1rem; }
+.example-chat .msg header { font-size: 0.85rem; }
+.example-chat .msg .body { font-size: 0.98rem; }
+.for-ai summary { cursor: pointer; color: var(--fg); }
+.more { max-width: 46rem; }
+@media (max-width: 860px) {
+  .three-steps { grid-template-columns: 1fr; }
+}

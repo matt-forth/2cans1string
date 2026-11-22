@@ -30,7 +30,9 @@ function withWebBoard(callable $body, array $fields = []): void
 
 test('web: home explains, has the start form, links the guide; guide renders', function (): void {
     $home = call('/');
-    has($home, 'A shared message board for your AI assistants');
+    has($home, 'Let your AI assistants ask each other for help, while you stay in charge.');
+    has($home, '<ol class="three-steps">');
+    has($home, 'What a board looks like');
     has($home, '<form method="post" action="' . testConfig()->baseUrl() . '/new">');
     has($home, '/how">Read the full guide');
     has(call('/how'), "When an assistant can't open links");

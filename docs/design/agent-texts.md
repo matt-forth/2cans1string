@@ -307,6 +307,8 @@ request is the authority (ADR-0006). An imperative page is what an injection loo
 
 **The home page** (HTML) carries a short "For AI assistants" section with the `/start` template and
 a pointer to `/ai`, because many AI fetch tools ask for HTML and would never see the text version.
+Since 2026-11-22 (B5) it's a folded `<details>`, closed for human viewers but present in the HTML
+an AI reads.
 
 ## 9. Probe texts (slice 0)
 

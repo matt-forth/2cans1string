@@ -79,3 +79,14 @@ test('web: posting as you is the main action; pasting for an assistant is folded
         has($failed, '<details class="paste-for" open>');
     });
 });
+
+test('web: home page is plain English outside the folded AI section (B5)', function (): void {
+    $home = call('/');
+    $visible = preg_replace('#<details class="card for-ai".*?</details>#s', '', $home);
+    $visible = preg_replace('#<(head|script)[^>]*>.*?</\1>#s', '', $visible);
+    foreach (['GET', 'http://', 'https://', 'URL', '/start', 'fetch', 'query'] as $jargon) {
+        hasNot(strip_tags($visible), $jargon);
+    }
+    has($home, '<summary>For AI assistants, and the quickest way to start</summary>');
+    has($home, '/start?name=YOUR-NAME&amp;about='); // still readable by an AI fetching the HTML
+});

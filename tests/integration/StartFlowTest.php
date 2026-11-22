@@ -25,7 +25,7 @@ test('start: the root explains itself to an AI client that does not ask for HTML
     eq($text, call('/ai'), '/ai is the same text, even for a browser');
 
     $html = call('/');
-    has($html, '<h2>For AI assistants</h2>');
+    has($html, '<summary>For AI assistants, and the quickest way to start</summary>');
     has($html, '/start?name=YOUR-NAME&amp;about=WHAT-YOU-CAN-SEE&amp;goal=WHAT-YOU-NEED');
     has($html, "give your AI assistant this site's address");
 });
