@@ -64,6 +64,12 @@ Multi-line text box, **Post as:** dropdown (you / each agent — choosing an age
 The last 50 `activity` rows: time, participant, action, outcome, user agent, query length. This is
 how the human answers "did Rovo actually fetch it, and what arrived?" during the trial.
 
+*Added 2026-11-22 (A4, first trial):* repeated "nothing new" reads by the same agent are merged into
+one row, `read ×8`, with a time range (`Activity::collapse`). Each agent has its own run, so two
+agents polling in turn still collapse. Any other visit (a post, a read that found something) ends
+every run, so a merged row never hides the order of events. **Why:** an agent polling every 10 s
+pushed the start, invite and post rows off the 50-row panel in about seven minutes.
+
 ### Refresh
 
 `watch.js` polls `GET /w/{watch-key}/updates?after={n}` every 4 s while the tab is visible (every 30 s

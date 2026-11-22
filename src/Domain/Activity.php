@@ -16,15 +16,57 @@ final class Activity
     {
     }
 
-    /** @return list<array<string, mixed>> newest first, with the participant's name */
+    /**
+     * The newest rows for the watch page, with runs of identical empty reads collapsed into one.
+     *
+     * @return list<array<string, mixed>> newest first, with the participant's name, `count` and `first_at`
+     */
     public function recent(int $conversationId, int $limit = 50): array
     {
-        return $this->db->run(
-            'SELECT a.at, a.action, a.outcome, a.method, a.user_agent, a.query_length, p.name
+        $rows = $this->db->run(
+            'SELECT a.participant_id, a.at, a.action, a.outcome, a.method, a.user_agent, a.query_length, p.name
              FROM activity a LEFT JOIN participants p ON p.id = a.participant_id
-             WHERE a.conversation_id = ? ORDER BY a.id DESC LIMIT ' . $limit,
+             WHERE a.conversation_id = ? ORDER BY a.id DESC LIMIT ' . self::KEEP,
             [$conversationId],
         )->fetchAll();
+
+        return array_slice(self::collapse($rows), 0, $limit);
+    }
+
+    /**
+     * Merges repeated "nothing new" reads by the same participant (rows newest first). Two agents that
+     * poll interleave, so each participant has its own open run; any other kind of visit (a post, a
+     * read that found something, a start…) closes every run, so merged rows never jump over an event.
+     * Without this, a polling agent pushes the visits that matter off the page in minutes.
+     *
+     * @param list<array<string, mixed>> $rows newest first
+     * @return list<array<string, mixed>> each with `count` (rows merged) and `first_at` (oldest of them)
+     */
+    public static function collapse(array $rows): array
+    {
+        $out = [];
+        $open = []; // participant id => index in $out of its current run
+        foreach ($rows as $row) {
+            $row['count'] = 1;
+            $row['first_at'] = $row['at'];
+            $empty = $row['action'] === 'read' && str_starts_with((string) $row['outcome'], 'nothing after');
+            if (!$empty) {
+                $open = [];
+                $out[] = $row;
+                continue;
+            }
+            $who = (string) $row['participant_id'];
+            $run = $open[$who] ?? null;
+            if ($run !== null && $out[$run]['outcome'] === $row['outcome']) {
+                $out[$run]['count']++;
+                $out[$run]['first_at'] = $row['at'];
+                continue;
+            }
+            $out[] = $row;
+            $open[$who] = count($out) - 1;
+        }
+
+        return $out;
     }
 
     public function log(int $conversationId, ?int $participantId, string $action, string $outcome, Request $request): void
