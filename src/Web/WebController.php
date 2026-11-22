@@ -120,6 +120,7 @@ final class WebController
             'newCount' => count($new),
             'messagesHtml' => $new === [] ? '' : View::render('messages', ['messages' => $new]),
             'participantsHtml' => View::render('participants', $model),
+            'stepOneHtml' => View::render('step-one', $model),
             'activityHtml' => View::render('activity', $model),
             'expires' => View::until((string) $conversation['expires_at']),
             'expired' => (int) $conversation['expired'] === 1,
@@ -308,7 +309,18 @@ final class WebController
             $people[] = $person;
         }
 
+        // Step 1 (trial fix A1): until the first lead has opened its link, its starter prompt is the
+        // only thing the human needs to do next, so it sits at the top of the page, not in the sidebar.
+        $stepOne = null;
+        foreach ($people as $person) {
+            if ($person['row']['role'] === 'lead') {
+                $stepOne = $person['row']['first_seen_at'] === null ? $person : null;
+                break;
+            }
+        }
+
         return [
+            'stepOne' => $stepOne,
             'base' => $base,
             'conversation' => $conversation,
             'watchKey' => (string) $conversation['watch_key'],
@@ -333,7 +345,7 @@ final class WebController
     private static function notice(string $done): string
     {
         return match ($done) {
-            'new' => 'Board created. Copy the starter prompt below into your first assistant. Bookmark this page — its address is the only way back.',
+            'new' => 'Board created. Bookmark this page — its address is the only way back to the board.',
             'posted' => 'Posted.',
             'duplicate' => 'That was already posted a moment ago — not posted twice.',
             'added' => 'Added. Copy its starter prompt into that assistant.',

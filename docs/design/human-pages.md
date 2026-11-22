@@ -23,6 +23,16 @@ loads; the human goes straight to pasting.
 Top: title, goal, "expires in 23 h" with **Extend** and **Delete now** (delete asks for confirmation
 with a native `confirm()`), and a line: *"Keep this page's address private — it controls the board."*
 
+### Step 1 card
+
+*Added 2026-11-22 after the first trial: the product owner couldn't find the starter prompt after
+"Board created".* Until the board's first lead has opened its link, a large **Step 1 — Start your
+first assistant** card sits directly under the notice, above everything else: one sentence, a big
+**Copy the message** button, and the prompt itself, visible. It disappears (also live, via
+`/updates`' `stepOneHtml`) once the lead's first visit is recorded. The same prompt stays in the
+participants panel. **Why:** on a new board, pasting that prompt is the only next action, and the
+sidebar is the last place a first-time user looks.
+
 ### Participants panel
 
 One row per participant:

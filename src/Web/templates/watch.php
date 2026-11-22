@@ -2,7 +2,7 @@
 /**
  * @var string $base @var array $conversation @var string $watchKey @var list<array> $messages
  * @var int $lastSeq @var list<array> $people @var list<array> $activity @var string $humanName
- * @var string $notice @var array $postForm @var list<int> $expiryChoices
+ * @var string $notice @var array $postForm @var array|null $stepOne @var list<int> $expiryChoices
  */
 use Cans\Web\View;
 
@@ -34,6 +34,7 @@ $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '2
   </header>
 
   <?php if ($notice !== ''): ?><p class="notice" data-notice><?= e($notice) ?></p><?php endif; ?>
+  <div data-step-one><?= View::render('step-one', ['stepOne' => $stepOne]) ?></div>
 
   <div class="cols">
     <section class="transcript">

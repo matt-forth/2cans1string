@@ -125,3 +125,19 @@ test('web: a bad watch key is a plain not-found page', function (): void {
     has(call('/w/nope'), "This board doesn't exist");
     has(call('/w/' . str_repeat('a', 20)), "This board doesn't exist");
 });
+
+test('web: Step 1 card shows the lead prompt until the lead opens its link (trial fix A1)', function (): void {
+    withWebBoard(function (int $id, string $watch, string $lead): void {
+        $page = call($watch . '?done=new');
+        has($page, 'Board created.');
+        has($page, '<span class="step-badge">Step 1</span>');
+        has($page, 'Copy the message</button>');
+        ok(strpos($page, 'step-badge') < strpos($page, '<h2>Messages</h2>'), 'Step 1 sits above the transcript');
+        $json = json_decode(call($watch . '/updates?after=0'), true);
+        has($json['stepOneHtml'], 'Please fetch ' . testConfig()->baseUrl() . $lead . ' now');
+
+        call($lead);
+        hasNot(call($watch), 'step-badge');
+        eq('', json_decode(call($watch . '/updates?after=0'), true)['stepOneHtml']);
+    });
+});

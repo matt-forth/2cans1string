@@ -121,6 +121,7 @@
   var messages = $('[data-messages]', watch);
   var participants = $('[data-participants]', watch);
   var activity = $('[data-activity]', watch);
+  var stepOne = $('[data-step-one]', watch);
   var lastParticipants = participants.innerHTML;
   var lastActivity = activity.innerHTML;
 
@@ -160,6 +161,7 @@
         }
         lastSeq = data.lastSeq;
         if (data.participantsHtml !== lastParticipants) { lastParticipants = data.participantsHtml; replaceKeepingOpen(participants, data.participantsHtml); }
+        if (stepOne && data.stepOneHtml === '' && stepOne.innerHTML.trim() !== '') stepOne.innerHTML = '';
         if (data.activityHtml !== lastActivity) { lastActivity = data.activityHtml; replaceKeepingOpen(activity, data.activityHtml); }
         var expires = $('[data-expires]', watch);
         if (expires) expires.textContent = data.expires;
