@@ -60,6 +60,8 @@ if ($Base.StartsWith('https://')) {
     $location = if ($plain -and $plain.Headers) { [string]$plain.Headers['Location'] } else { '' }
     Report 'http redirects to https' ((Status $plain) -in 301, 302, 307, 308 -and $location.StartsWith('https://')) "got $(Status $plain) $location"
 }
+$acme = Fetch "$Base/.well-known/acme-challenge/cans-smoke-check"
+Report 'certificate checks reachable (/.well-known/ not 403)' ((Status $acme) -ne 403) "status $(Status $acme): HTTPS renewals would fail"
 foreach ($private in '/config.local.php', '/app/config.local.php', '/app/src/App.php', '/.user.ini', '/.htaccess') {
     $r = Fetch "$Base$private"
     Report "not served: $private" ((Status $r) -ne 200 -or $r.Content.Length -eq 0 -or $r.Content -match '^Not found') "status $(Status $r)"

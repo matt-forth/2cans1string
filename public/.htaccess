@@ -4,6 +4,11 @@ DirectoryIndex index.php
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    # Certificate checks (Let's Encrypt / cPanel AutoSSL) read /.well-known/acme-challenge/… over plain
+    # HTTP. Leave them alone: no HTTPS redirect, no dotfile block — or renewals fail silently and HTTPS
+    # lapses about 90 days later. (Found on the first real deploy, 2026-11-22.)
+    RewriteRule ^\.well-known/ - [L]
+
     # HTTPS only (docs/deploy.md). The X-Forwarded-Proto check stops a redirect loop on hosts whose
     # TLS ends at a proxy; localhost is left alone. If the host has no certificate yet, comment out
     # these four lines until it does.

@@ -8,7 +8,7 @@ declare(strict_types=1);
 // which Apache refuses too (public/.htaccess), so local behaves like the host.
 if (PHP_SAPI === 'cli-server') {
     $path = (string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-    if (preg_match('#(^|/)\.#', $path) === 1) {
+    if (preg_match('#(^|/)\.#', $path) === 1 && !str_starts_with($path, '/.well-known/')) {
         http_response_code(403);
         exit;
     }

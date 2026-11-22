@@ -40,6 +40,17 @@ This makes `build\upload\`, laid out like your hosting home folder. Pick the lay
 Is your web root called `www` or `htdocs`? Add `-WebRoot www`. `public/index.php` finds the code in
 either layout by itself.
 
+**The web root isn't directly in your home folder?** cPanel addon domains are the usual case: the web
+root is something like `~/2cans1string.com/www`. Build with `-WebRoot www`, then upload the contents
+of `build\upload\` into the folder **above** the web root (`~/2cans1string.com/`), not into your
+home folder. The code then sits beside `www/`, outside it. (First real deploy, 2026-11-22.)
+
+**Keep what the host already put in the web root.** Folders such as `.well-known/` (certificate
+checks) and `cgi-bin/` belong to the host. Upload around them; don't delete or replace them.
+
+**Re-running `package.ps1` wipes `build\upload\`**, including a `config.local.php` you put there.
+Keep the host's config somewhere else too.
+
 ## 4. Configure
 
 Create `config.local.php` from `config.local.php.example`, next to `config.default.php` (in
@@ -77,7 +88,12 @@ What production gets from the shipped files, with nothing to set:
 - **Errors are logged, never shown.** `public/.user.ini` turns `display_errors` off before PHP starts
   (FastCGI/FPM hosts). `src/bootstrap.php` does the same at run time. Uncaught errors are logged with
   `error_log` and the client gets a one-line message.
-- **Dotfiles aren't served** (`.htaccess`, `.user.ini`), and no directory listings.
+- **Dotfiles aren't served** (`.htaccess`, `.user.ini`), and no directory listings. The one
+  exception is `/.well-known/`: Let's Encrypt and cPanel AutoSSL renew the certificate by reading
+  `/.well-known/acme-challenge/…` over plain HTTP. That path is exempt from both the dotfile block
+  and the HTTPS redirect. Without the exemption, renewals fail silently and HTTPS lapses about 90
+  days later. (The first real deploy, 2026-11-22, caught this before it bit. A unit test checks the
+  rule order, and the smoke test checks the path isn't 403.)
 
 ## 5. Upload and smoke test
 
