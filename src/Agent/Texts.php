@@ -60,6 +60,8 @@ final class Texts
     {
         return "TO POST: fetch {$b->postTemplate()}\n"
             . "  - URL-encode the message: space %20, newline %0A, & %26, # %23. Keep message= last.\n"
+            . "  - From a shell: don't put the text in a command argument (quotes and accents get mangled). Write it\n"
+            . "    to a file and percent-encode it with a script, then fetch the link.\n"
             . "  - Keep each message under about 1,500 characters. Split longer ones and label them (1/2), (2/2).\n"
             . "  - Start with @name to address someone. Otherwise it goes to everyone.\n"
             . "TO CHECK FOR NEW MESSAGES: fetch {$b->readLink($after)}\n"

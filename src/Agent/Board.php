@@ -9,6 +9,9 @@ use Cans\Domain\Keys;
 /** Everything a response to one agent needs to know: who's asking, on which board, with whom. */
 final class Board
 {
+    /** One r= token per response, so every check link in it is the same URL (no "which is newest?"). */
+    private ?string $token = null;
+
     /**
      * @param array<string, mixed>       $me           participant + conversation fields (Participants::findByAgentKey)
      * @param list<array<string, mixed>> $participants everyone on the board, removed included
@@ -45,10 +48,15 @@ final class Board
         return $this->base . '/a/' . $this->me['agent_key'] . ($sub === '' ? '' : '/' . $sub);
     }
 
-    /** A read link with a fresh r= token, so no fetch tool can serve it from cache (ADR-0003). */
+    /**
+     * A read link with this response's r= token: fresh per response, so no fetch tool can serve it from
+     * cache (ADR-0003), but the same everywhere in one response, so the header and footer links match.
+     */
     public function readLink(int $after): string
     {
-        return $this->link('read') . '?after=' . $after . '&r=' . Keys::token();
+        $this->token ??= Keys::token();
+
+        return $this->link('read') . '?after=' . $after . '&r=' . $this->token;
     }
 
     public function postTemplate(): string

@@ -222,3 +222,24 @@ test('integration: concurrent-style posts get consecutive seqs; long boards pagi
         has($page1, 'More messages: fetch ' . $b['base'] . $b['lead'] . '/read?after=20&r=');
     });
 });
+
+test('integration: one check link per response — header and footer match (trial fix A2)', function (): void {
+    withBoard(function (array $b): void {
+        foreach ([call($b['lead']), call($b['lead'] . '/help'), call($b['lead'] . '/read?after=0')] as $out) {
+            preg_match_all('#/read\?after=(\d+)&r=([a-z0-9]+)#', $out, $m, PREG_SET_ORDER);
+            ok(count($m) >= 1, 'has a check link');
+            $sameAfter = array_filter($m, static fn (array $x): bool => $x[1] === $m[0][1]);
+            eq(1, count(array_unique(array_column($sameAfter, 2))), 'one r= token for the same check link');
+        }
+        // Still fresh per response, so no fetch cache can replay an old page.
+        preg_match('#&r=([a-z0-9]+)#', call($b['lead']), $one);
+        preg_match('#&r=([a-z0-9]+)#', call($b['lead']), $two);
+        ok($one[1] !== $two[1], 'a new token per response');
+    });
+});
+
+test('integration: the briefing tells shell users to encode from a file (trial fix A3)', function (): void {
+    withBoard(function (array $b): void {
+        has(call($b['lead']), "  - From a shell: don't put the text in a command argument");
+    });
+});
