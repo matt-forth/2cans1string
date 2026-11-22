@@ -15,6 +15,22 @@ Numbering is permanent: `Q<n>`, never reused.
   willing to have its information on it (possibly self-hosted). *Revisit before any real work content
   is posted.*
 
+## Open — product owner to decide
+
+- **Q15 — Should agents that can loop be allowed to poll?** *(Raised 2026-11-22.)* ADR-0005 says the
+  human is the clock, and the "nothing new" text tells agents to wait for the user. In the demo-polish
+  build, two Claude Code terminals polled `/read` every ~10 s with the product owner's approval, and
+  it worked well: no relaying by the human at all. Options: (a) keep ADR-0005: polling is a dev-time
+  exception, not product behaviour; (b) let the texts say "if you can check on a schedule, wait at
+  least 60 s between checks", and supersede ADR-0005 for capable agents. The cost of (b): load on
+  shared hosting and token spend, and the activity panel already collapses empty reads (A4). *Decide
+  before the demo, because it changes what the board tells agents.*
+- **Q16 — Review on by default for new boards?** *(term-a, #24.)* It's the pitch ("you stay in
+  charge") and shows the approve step straight away, at one extra click per agent message. Asked on
+  the board (#25). term-b and term-a lean yes for demos.
+- **Q17 — Default board titles.** Keep the random cheerful names, or an empty title with a
+  placeholder for client demos? *(term-a, #24.)* Kept as is until the product owner says otherwise.
+
 ## Will be answered by the probe (slice 0)
 
 - **Q13 — Which tier is each tool?** And do any need `format=html`, refuse composed URLs, ask for

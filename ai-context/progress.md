@@ -4,12 +4,12 @@ Update this at the end of every working session. Newest session-log entry at the
 
 ## Current status
 
-**Slices 0, 1 and 2 are built and tested locally (2026-11-22); nothing is deployed yet.** The site
-is usable end to end at http://localhost:9099: home page with explanation and "Start a board", a
-`/how` guide, the watch page (live transcript, assistant statuses/nudges, starter prompts, post or
-relay, add/remove, extend/delete, activity), and the full agent API. 40 tests pass (26 unit, 14
-integration). Next: the product owner's real trial with two or more AI chats; deploy and probe cloud
-tools; then what's left of slice 3 (deployment notes, three-agent trial, accept the ADRs).
+**Demo-ready locally; deployment prepared but not done (2026-11-22).** Slices 0–2, the fixes from the
+first terminal-to-terminal trial, the demo-polish brief (pause, review before delivery, conversation
+view, home page) and the shared-hosting deployment kit are built, tested and committed on
+`feature/demo-polish` (baseline `db7331f` on `main`). 62 tests pass, and `tests/smoke.ps1` passes
+against localhost and against the packaged upload layout. Next: the product owner deploys
+(`docs/deploy.md`), decides Q15–Q17, and merges the branch.
 
 ## Done
 
@@ -28,12 +28,15 @@ tools; then what's left of slice 3 (deployment notes, three-agent trial, accept 
 - Slice 2 code: `Web\{WebController, View}`, templates (layout, home, how, watch, messages,
   participants, activity, gone), `public/assets/app.js` + `app.css`, `Responses::json/redirect`.
 
+- Demo brief (2026-11-22, `feature/demo-polish`): trial fixes A1–A4, pause and review (ADR-0010),
+  conversation view, prominent human posting, home page, demo polish, deployment kit
+  (`docs/deploy.md`, `dev/package.ps1`, `tests/smoke.ps1`, `bin/purge.php`). See the session log.
+
 ## Not started
 
-- Deployment to the host and cloud-tool probe runs (product owner).
-- A real trial with two or more AI chats (product owner).
-- Rest of slice 3: deployment notes (HTTPS, access logs), three-agent trial, ADRs accepted.
-- Accepting the ADRs (planned at the end of slice 3, to match what was built).
+- Deployment to the host and cloud-tool probe runs (product owner; everything is ready: `docs/deploy.md`).
+- A trial with a non-Claude AI tool (so far only two Claude Code terminals have used it).
+- Three-agent trial; accepting the ADRs (0001–0010, all Proposed).
 
 ## The open risk that matters most
 
@@ -43,7 +46,10 @@ what is unknown until probed. See `docs/architecture/risks.md`.
 
 ## Decisions awaiting a human
 
-- Accept / change the design (ADR-0001 to 0008).
+- Q15 (should looping agents poll?), Q16 (review on by default?), Q17 (default titles): see
+  `open-questions.md`.
+- Merge `feature/demo-polish` into `main`; push (no remote yet).
+- Accept / change the design (ADR-0001 to 0010).
 - Q9 company data policy is deferred until after a demo (see the session log).
 
 ## Known issues / debt
@@ -53,6 +59,47 @@ what is unknown until probed. See `docs/architecture/risks.md`.
   probe shows a tool sending raw spaces it will look like "no hit at all".
 
 ## Session log
+
+### 2026-11-22 — Terminal-to-terminal trial, then the demo brief, built over the board — `feature/demo-polish`
+
+**How it ran.** Two Claude Code terminals on the product owner's machine used the product itself:
+term-a (lead, in the Code Xray repo) and term-b (this repo's session, helper) on the board
+"Terminal-to-terminal test". The first round trip worked first time. `Zoë & "café" #42 – 100% ✓`
+survived both directions intact. term-a then posted a build brief (#7–#9), which the product owner
+approved. term-b built it, posted a one-line update per item, and term-a tested each one from
+outside like a user, including visual passes in Chrome. **Both agents polled `/read` every ~10 s,
+with the product owner's approval.** This is a working exception to ADR-0005 ("the human is the
+clock"), not product behaviour, so it's recorded here and in Q15, not in an ADR. The human didn't
+relay a single message after the start.
+
+**Trial findings (A), fixed:** the starter prompt was hard to find after "Board created" (now the
+Step 1 card); two different `r=` tokens in one response made "use the newest link" unanswerable (now
+one token per response); both agents mangled non-ASCII in shell arguments (the briefing now says to
+encode from a file); 10 s polling pushed the useful rows off the activity panel (empty reads now
+collapse per agent).
+
+**Built (B, C), commit per item:** pause/resume, and review before delivery, with held messages
+getting no seq until approved (ADR-0010; poster told of approval or discard, term-a's #11);
+conversation view (bubbles, colours, from → to, turn strip, no jargon outside Technical details);
+prominent human posting ("board owner" tag, sticky compact composer); home page (pitch, three steps,
+example board); polish from term-a's review (#18, #21, #22, #24, #26, #28: Waiting-on covers
+pause/approvals/questions to `@human`, NOT ADDED, Show more, auto-scroll or New-message pill, wider
+column, You avatar, keep-for never shortens, sticky turn strip); deployment kit (HTTPS redirect,
+`.user.ini`, layout-2 lock, optional `bin/purge.php`, `docs/deploy.md`, `dev/package.ps1`,
+`tests/smoke.ps1`).
+
+**Learned.** A UTF-8 BOM in `config.local.php` breaks `declare(strict_types=1)` and makes every page a
+500 (found while rehearsing the packaged layout; in the deploy guide). Git Bash heredocs mangle some
+backslash sequences in inline Python, so writing scripts to files with the Write tool is safer.
+term-b briefly caused 500s for term-a while editing live code under the running server: expected, but
+worth knowing when an agent tests a site another agent is editing.
+
+**Commits:** `db7331f` baseline (on `main`, rebuilt from a copy without term-b's in-flight edits, at
+the product owner's request in #12); on `feature/demo-polish`: `5852873` A2+A3, `c0ab3d9` A1,
+`3fa477b` A4, `21a3546` B2+B3, `4f97a8d` B1 + #18, `855eb94` B4, `12e4b81` B5, `3115d9f` polish,
+`570aecc` sticky strip, `4ef3763` C1, `b8e0e58` C2, `aa73a38` C3.
+
+**Local DB:** `db/upgrades/2026-11-22-pause-and-hold.sql` applied.
 
 ### 2026-11-22 — Default board names; "give the AI the URL and it just happens" — on `main`, uncommitted
 

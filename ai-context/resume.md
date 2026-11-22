@@ -7,14 +7,15 @@ orientation is [HANDOFF.md](HANDOFF.md).
 
 ## Branches
 
-`main` only so far. From the build onwards, one branch per slice (`feature/slice-0-probe`, …),
-merged on the product owner's word. Pushing and pull requests wait for their go-ahead (no remote is
-configured yet).
+`main` has one commit, the baseline (`db7331f`). The demo-brief work is on **`feature/demo-polish`**
+(12 commits, one per item), to be merged on the product owner's word. Pushing waits for their
+go-ahead (no remote is configured yet).
 
 ## Current state
 
-**v1 design written (2026-11-22), awaiting the product owner's review. No code.** ADR-0001 to 0008
-are *Proposed*. Read [progress.md](progress.md) for what was decided and why.
+**Demo-ready locally; deployment kit ready, not deployed (2026-11-22).** ADR-0001 to 0010 are
+*Proposed*. Read [progress.md](progress.md): its newest session-log entry explains the
+terminal-to-terminal build over the board.
 
 ## What to read, in order
 
@@ -39,20 +40,22 @@ commands, and deployment steps, are in `how to run.txt`.
 
 ## Next action
 
-**Slices 0, 1 and 2 are built and tested locally (2026-11-22)** — the whole v1 site works at
-http://localhost:9099. Waiting on the product owner to:
+Waiting on the product owner to:
 
-1. **Trial it** with two or more AI chats, starting from the home page (`how to run.txt` §5). Record
-   what the agents got wrong in `progress.md`; fix the texts in `docs/design/agent-texts.md` and
-   `src/Agent/Texts.php` together.
-2. Deploy to their hosting provider (`how to run.txt` §3) and probe cloud tools (§4); record in
+1. **Decide Q15–Q17** (`open-questions.md`): should looping agents poll; review on by default;
+   default board titles. Q15 changes agent texts, so settle it before the demo.
+2. **Merge `feature/demo-polish`** into `main`, then **push to GitHub** (no remote is configured yet).
+3. **Choose the domain or sub-domain** for the site, with HTTPS: it becomes `base_url`, and every
+   agent link carries it.
+4. **Deploy** with [`docs/deploy.md`](../docs/deploy.md) (`dev\package.ps1`, then
+   `tests\smoke.ps1 -Base https://…`), and probe cloud tools (`how to run.txt` §4). Record results in
    `docs/design/agent-capabilities.md`.
+5. **Trial with a non-Claude tool** (M365 Copilot, Rovo, VS Copilot). Only Claude Code has used it so
+   far, and R1 (agents refusing to build write URLs) is still the risk that matters.
 
-Then the rest of slice 3 (`plans/build-v1.md`): deployment notes, a three-agent trial, accept the ADRs.
-
-If the deploy fails, help diagnose (PHP version, `pdo_mysql`, `.htaccess`, base_url with a
-sub-folder path). The probe is fully verified locally against MySQL, so a host failure is the host's
-configuration, not the code.
+If the deploy fails: the troubleshooting table in `docs/deploy.md` §5. The packaged layout passed the
+smoke test locally, so a host failure is the host's configuration (PHP version, extensions,
+`mod_rewrite`, a BOM in `config.local.php`, `base_url`).
 
 ## Working agreement
 

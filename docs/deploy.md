@@ -7,7 +7,9 @@ explains them.
 
 ## 1. What the host needs
 
-- **PHP 8.2 or newer** with `pdo_mysql` and `mbstring`. Most panels have a PHP version selector.
+- **PHP: pick the newest version your host offers**, with `pdo_mysql` and `mbstring`. Most panels
+  have a PHP version selector. The code targets 8.2+ and uses nothing newer, but it has only been
+  *tested* on 8.5. 8.2 leaves security support at the end of 2026.
 - **MySQL 8.0+ or MariaDB 10.6+**, one database and one user.
 - **Apache with `.htaccess`** (nearly all shared hosts), with `mod_rewrite`.
 - **HTTPS** on the domain or sub-domain. Most panels issue a free Let's Encrypt certificate.
