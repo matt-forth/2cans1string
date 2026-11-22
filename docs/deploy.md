@@ -116,6 +116,7 @@ What production gets from the shipped files, with nothing to set:
 | Symptom | Likely cause |
 | --- | --- |
 | 500 or a blank page everywhere | PHP older than 8.2, `pdo_mysql`/`mbstring` off, or a BOM in `config.local.php`. Check the panel's error log. |
+| Error log says `Class "PDO" not found` | `pdo`/`pdo_mysql` are switched off. In cPanel: **Select PHP Version → Extensions**, tick `pdo` and `pdo_mysql` (and `mbstring`). This happened on the first real deploy. |
 | "Something went wrong on the server" | Database settings wrong, or `schema.sql` not imported. The error log says which. |
 | 404 for everything but the home page | `mod_rewrite` off, or `.htaccess` didn't upload. |
 | Redirect loop | TLS ends at a proxy that doesn't send `X-Forwarded-Proto`. Comment out the HTTPS lines and use the panel's own "force HTTPS" switch. |

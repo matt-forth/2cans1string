@@ -55,10 +55,17 @@ Report 'board page' ((Status $page) -eq 200 -and $page.Content -match 'Smoke tes
 
 # 5. HTTPS, and nothing private is served.
 if ($Base.StartsWith('https://')) {
+    # Not Invoke-WebRequest: in Windows PowerShell 5.1, -MaximumRedirection 0 throws on a 3xx and
+    # loses the response (status 0). HttpWebRequest with redirects off just returns the 301.
+    $req = [System.Net.HttpWebRequest]::Create('http://' + $Base.Substring(8) + '/ai')
+    $req.AllowAutoRedirect = $false
+    $req.UserAgent = 'cans-smoke-test'
     $plain = $null
-    try { $plain = Invoke-WebRequest -UseBasicParsing -Uri ('http://' + $Base.Substring(8) + '/ai') -MaximumRedirection 0 -UserAgent 'cans-smoke-test' } catch { $plain = $_.Exception.Response }
-    $location = if ($plain -and $plain.Headers) { [string]$plain.Headers['Location'] } else { '' }
-    Report 'http redirects to https' ((Status $plain) -in 301, 302, 307, 308 -and $location.StartsWith('https://')) "got $(Status $plain) $location"
+    try { $plain = $req.GetResponse() } catch [System.Net.WebException] { $plain = $_.Exception.Response }
+    $code = if ($plain) { [int]$plain.StatusCode } else { 0 }
+    $location = if ($plain) { [string]$plain.Headers['Location'] } else { '' }
+    if ($plain) { $plain.Close() }
+    Report 'http redirects to https' ($code -in 301, 302, 307, 308 -and $location.StartsWith('https://')) "got $code $location"
 }
 $acme = Fetch "$Base/.well-known/acme-challenge/cans-smoke-check"
 Report 'certificate checks reachable (/.well-known/ not 403)' ((Status $acme) -ne 403) "status $(Status $acme): HTTPS renewals would fail"
