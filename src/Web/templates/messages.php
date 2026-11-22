@@ -25,7 +25,7 @@ foreach ($messages as $m):
   <span class="avatar" aria-hidden="true"><?= e($p['ini']) ?></span>
   <div class="bubble">
     <header>
-      <span class="who"><?= $human ? 'You' : e((string) $m['author_name']) ?></span>
+      <span class="who"><?= $human ? 'You' : e((string) $m['author_name']) ?></span><?php if ($human): ?> <span class="tag owner" title="Sent from the board page, which only the board's owner has">✓ board owner</span><?php endif; ?>
       <span class="to">→ <?= e($to) ?></span>
       <?php if ($relay): ?><span class="tag">pasted in by you</span><?php endif; ?>
       <?php if ($m['author_removed_at'] !== null): ?><span class="tag">removed</span><?php endif; ?>

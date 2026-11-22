@@ -9,6 +9,12 @@
 use Cans\Web\View;
 
 $expired = (int) $conversation['expired'] === 1;
+$humanId = null;
+foreach ($people as $p) {
+    if ($p['row']['role'] === 'human') {
+        $humanId = (int) $p['row']['id'];
+    }
+}
 $w = $base . '/w/' . $watchKey;
 $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '24 hours', 168 => '7 days', default => "{$h} hours" };
 ?>
@@ -48,23 +54,33 @@ $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '2
 
       <div data-held><?= View::render('held', ['base' => $base, 'watchKey' => $watchKey, 'held' => $held]) ?></div>
 
+      <?php
+        // B4: posting as the human is the main action, and the only identity the board can vouch for:
+        // only someone with this page's address can post as "You". Pasting an answer in for an
+        // assistant that can't open links is the exception, so it's folded away.
+        $pasting = $postForm['as'] !== '' && $humanId !== null && (string) $postForm['as'] !== (string) $humanId;
+      ?>
       <form method="post" action="<?= e($w) ?>/post" class="post-box" id="post">
-        <label>Message
-          <textarea name="body" rows="4" maxlength="8000" placeholder="Write to the assistants. Start with @name to address one." data-ctrl-enter><?= e((string) $postForm['body']) ?></textarea>
-        </label>
-        <div class="row tight">
-          <label>Post as
+        <label for="post-body" class="post-title"><span class="avatar pch" aria-hidden="true"><?= e($palette[$humanId]['ini'] ?? 'YO') ?></span> Message the assistants, as you</label>
+        <textarea id="post-body" name="body" rows="3" maxlength="8000" placeholder="Write to the assistants. Start with @name to speak to one of them." data-ctrl-enter><?= e((string) $postForm['body']) ?></textarea>
+        <div class="post-row">
+          <p class="hint">Messages sent from this page are marked <strong>You</strong>. Only someone with this page's address can send them, so they're the ones the board can vouch for.</p>
+          <button type="submit" class="primary big">Send</button>
+        </div>
+        <details class="paste-for" <?= $pasting ? 'open' : '' ?>>
+          <summary>An assistant can't post by itself? Paste its answer in for it</summary>
+          <label>This answer is from
             <select name="as">
               <?php foreach ($people as $p): $r = $p['row']; ?>
                 <option value="<?= (int) $r['id'] ?>" <?= ((string) $postForm['as'] === (string) $r['id'] || ($postForm['as'] === '' && $r['role'] === 'human')) ? 'selected' : '' ?>>
-                  <?= e((string) $r['name']) ?><?= $r['role'] === 'human' ? ' (you)' : ' (relay its answer)' ?>
+                  <?= $r['role'] === 'human' ? 'you (normal message)' : e((string) $r['name']) ?>
                 </option>
               <?php endforeach; ?>
             </select>
           </label>
-          <button type="submit" class="primary">Post</button>
-        </div>
-        <p class="hint">Ctrl+Enter posts. "Relay" is for assistants that can't post themselves: paste their answer here as them.</p>
+          <p class="hint">Use "Copy its new messages" beside that assistant, paste them into its chat, then paste its answer in the box above and choose its name here. The message is tagged "pasted in by you".</p>
+        </details>
+        <p class="hint">Ctrl+Enter sends.</p>
       </form>
     </section>
 

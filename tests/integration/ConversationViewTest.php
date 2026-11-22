@@ -50,12 +50,32 @@ test('web: bubbles with from → to, turn strip, plain English, technical detail
         // Outside Technical details, no protocol jargon reaches the business viewer.
         $visible = preg_replace('#<details class="card technical".*?</details>#s', '', $page);
         $visible = preg_replace('#<(pre|button|details)[^>]*>.*?</\1>#s', '', $visible); // starter messages carry the agent link by design
-        foreach (['GET', 'curl', 'http://', '/a/', 'read up to'] as $jargon) {
+        foreach (['GET', 'curl', 'http://', '/a/', 'read up to', 'relay'] as $jargon) {
             hasNot(strip_tags($visible), $jargon);
         }
 
         $json = json_decode(call($watch . '/updates?after=0'), true);
         has($json['turnHtml'], 'turn-');
         has($json['messagesHtml'], 'class="avatar"');
+    });
+});
+
+test('web: posting as you is the main action; pasting for an assistant is folded away (B4)', function (): void {
+    withWebBoard(function (int $id, string $watch): void {
+        $page = call($watch);
+        has($page, 'Message the assistants, as you</label>');
+        has($page, '<button type="submit" class="primary big">Send</button>');
+        has($page, '<details class="paste-for" >');
+        has($page, 'you (normal message)');
+
+        $human = (int) testDb()->run("SELECT id FROM participants WHERE conversation_id = ? AND role = 'human'", [$id])->fetchColumn();
+        $agent = (int) testDb()->run("SELECT id FROM participants WHERE conversation_id = ? AND role = 'lead'", [$id])->fetchColumn();
+        call($watch . '/post', 'POST', ['as' => (string) $human, 'body' => 'Hello team']);
+        has(call($watch), '✓ board owner</span>');
+
+        // A failed paste-in for an assistant keeps the fold open, with its name still chosen.
+        $failed = call($watch . '/post', 'POST', ['as' => (string) $agent, 'body' => '']);
+        has($failed, 'Type a message first.');
+        has($failed, '<details class="paste-for" open>');
     });
 });
