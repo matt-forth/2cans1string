@@ -8,8 +8,8 @@ orientation is [HANDOFF.md](HANDOFF.md).
 ## Branches
 
 `feature/demo-polish` was merged into **`main`** on 2026-11-23. Work on `main` or a new feature
-branch. The GitHub home will be https://github.com/matt-forth/2cans1string. No remote is configured
-yet, and pushing waits for the product owner's go-ahead.
+branch. `origin` is https://github.com/matt-forth/2cans1string (set 2026-11-23). Pushing waits for the
+product owner's go-ahead.
 
 ## Current state
 
@@ -44,8 +44,9 @@ Waiting on the product owner to:
 
 1. **Decide Q15** (`open-questions.md`): should looping agents poll? It changes agent texts, so
    settle it before the demo. (Q16, Q17 answered; Q18 parked.)
-2. **Push `main` to GitHub** (https://github.com/matt-forth/2cans1string; no remote configured yet),
-   and redeploy the home page (GitHub link, new lede).
+2. **Push `main` to GitHub** (`origin` is set). The live site is up to date with `main` as of
+   2026-11-23 (public and crawlable; GitHub link).
+   Then submit the site to Google Search Console and Bing Webmaster Tools.
 3. **Re-run the smoke test against the live site**, now that the redirect check is fixed:
    `tests\smoke.ps1 -Base https://2cans1string.com` (14/14 expected).
 4. **Scan a QR code with a real phone**, and let term-a do the Chrome visual pass of the join-code
