@@ -33,6 +33,19 @@ first assistant** card sits directly under the notice, above everything else: on
 participants panel. **Why:** on a new board, pasting that prompt is the only next action, and the
 sidebar is the last place a first-time user looks.
 
+### Pause and review ([ADR-0010](../adrs/ADR-0010-the-human-can-pause-the-board-and-approve-agent-messages.md))
+
+*Added 2026-11-22 (demo brief B2, B3): "your AIs collaborate, you stay in charge."*
+
+- Under the board title: a big **⏸ Pause the assistants** button. When paused, the strip turns amber
+  and says **Paused.** The assistants have been told to wait for you, with a big **▶ Resume**.
+- Beside it: **Review messages before they're delivered: On/Off** with a Turn on/off button. The start
+  form has the same option as a checkbox.
+- With review on, agent messages appear in an amber **Waiting for your approval (n)** box between the
+  transcript and the post box, visible only on this page, each with **✓ Approve and deliver** and
+  **Discard**. Both the strip and the box update live (`controlsHtml`, `heldHtml` in `/updates`).
+- Turning review off doesn't release waiting messages: each still needs a decision.
+
 ### Participants panel
 
 One row per participant:

@@ -9,6 +9,7 @@ use Cans\Db;
 use Cans\Domain\Activity;
 use Cans\Domain\BoardNames;
 use Cans\Domain\Conversations;
+use Cans\Domain\HeldMessages;
 use Cans\Domain\Keys;
 use Cans\Domain\LimitReached;
 use Cans\Domain\Messages;
@@ -29,6 +30,7 @@ final class AgentController
     private readonly Participants $participants;
     private readonly Messages $messages;
     private readonly Activity $activity;
+    private readonly HeldMessages $held;
 
     public function __construct(private readonly Config $config, Db $db)
     {
@@ -36,6 +38,7 @@ final class AgentController
         $this->participants = new Participants($db, $config);
         $this->messages = new Messages($db, $config);
         $this->activity = new Activity($db);
+        $this->held = new HeldMessages($db, $this->messages);
     }
 
     /** GET /ai (and GET / for clients that don't ask for HTML): the service, explained to an AI. */
@@ -122,21 +125,27 @@ final class AgentController
             }
 
             $board = new Board($me, $this->participants->inConversation((int) $me['conversation_id']), $this->config->baseUrl());
-            [$body, $outcome] = match ($sub) {
-                '' => $this->start($board),
-                'read' => $this->read($board, $request),
-                'post' => $this->post($board, $request),
-                'invite' => $this->invite($board, $request),
-                'help' => [$this->help($board), 'help'],
-                default => [Texts::unknownLink($sub) . $this->help($board), 'unknown link'],
-            };
+            $paused = $board->me['paused_at'] !== null;
+            if ($paused && in_array($sub, ['post', 'invite'], true) && preg_match(self::PREVIEWERS, $request->userAgent) !== 1) {
+                $body = Texts::shortHeader($board) . Texts::pausedRefused() . Texts::footer($board, (int) $board->me['last_read_seq']);
+                $outcome = 'refused: board paused';
+            } else {
+                [$body, $outcome] = match ($sub) {
+                    '' => $this->start($board),
+                    'read' => $this->read($board, $request),
+                    'post' => $this->post($board, $request),
+                    'invite' => $this->invite($board, $request),
+                    'help' => [$this->help($board), 'help'],
+                    default => [Texts::unknownLink($sub) . $this->help($board), 'unknown link'],
+                };
+            }
             if (!in_array($action, ['start', 'read', 'post', 'invite', 'help'], true)) {
                 $action = 'unknown';
             }
             if ($prefix !== '') {
                 $outcome = 'started the board';
             }
-            Responses::agent($request, $prefix . $body);
+            Responses::agent($request, ($paused ? Texts::paused() : '') . $prefix . $body);
         } finally {
             $this->activity->log((int) $me['conversation_id'], (int) $me['id'], $action, $outcome, $request);
         }
@@ -151,6 +160,7 @@ final class AgentController
         $after = max($shown, (int) $b->me['last_read_seq']);
 
         $body = Texts::header($b, (int) $b->me['next_seq'] - 1)
+            . Texts::heldNews($this->held->newsForPoster($b->myId()))
             . Texts::howTo($b, $after)
             . ($firstVisit ? Texts::howItWorks() . Texts::role($b) . Texts::rules() : Texts::fullInstructionsPointer($b))
             . Texts::onTheBoard($b);
@@ -174,14 +184,17 @@ final class AgentController
         $after = ctype_digit($raw) ? (int) $raw : (int) $b->me['last_read_seq'];
         $page = $this->messages->after($b->conversationId(), $after);
 
+        $news = Texts::heldNews($this->held->newsForPoster($b->myId()));
+
         if ($page['messages'] === []) {
             $this->participants->markRead($b->myId(), 0);
 
-            return [Texts::shortHeader($b) . Texts::nothingNew($after, $this->waitingOn($b)) . Texts::footer($b, $after), "nothing after #{$after}"];
+            return [Texts::shortHeader($b) . $news . Texts::nothingNew($after, $this->waitingOn($b)) . Texts::footer($b, $after), "nothing after #{$after}"];
         }
 
         $last = $this->lastSeq($page['messages']);
         $body = Texts::shortHeader($b)
+            . $news
             . $this->format($b, $page['messages'])
             . ($page['more'] ? Texts::moreMessages($b, $last) : '')
             . Texts::waitingOn($this->waitingOn($b)) . "\n"
@@ -209,6 +222,17 @@ final class AgentController
             return [Texts::tooLong($chars, $limit) . Texts::footer($b, (int) $b->me['last_read_seq']), "ERROR: too long ({$chars})"];
         }
 
+        if ((int) $b->me['hold_agent_posts'] === 1) {
+            $held = $this->held->hold($b->conversationId(), $b->myId(), $text, $request->method === 'POST' ? 'post' : 'get');
+            $this->participants->markRead($b->myId(), 0);
+
+            return [
+                Texts::shortHeader($b) . ($held['duplicate'] ? Texts::alreadyHeld() : Texts::held($text))
+                    . Texts::footer($b, (int) $b->me['last_read_seq']),
+                $held['duplicate'] ? 'already held' : "held ({$chars} chars)",
+            ];
+        }
+
         try {
             $result = $this->messages->post($b->conversationId(), $b->myId(), $text, $request->method === 'POST' ? 'post' : 'get', $b->activeNames());
         } catch (LimitReached) {
@@ -216,7 +240,8 @@ final class AgentController
         }
 
         $seq = $result['seq'];
-        $body = Texts::shortHeader($b) . ($result['duplicate'] ? Texts::alreadyPosted($seq) : Texts::posted($seq, $text));
+        $body = Texts::shortHeader($b) . ($result['duplicate'] ? Texts::alreadyPosted($seq) : Texts::posted($seq, $text))
+            . Texts::heldNews($this->held->newsForPoster($b->myId()));
 
         // Anything others posted since this agent last read — saves it a round trip.
         $since = $this->messages->after($b->conversationId(), (int) $b->me['last_read_seq']);

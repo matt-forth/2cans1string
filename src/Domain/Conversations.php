@@ -13,13 +13,13 @@ final class Conversations
     }
 
     /** @return array{id: int, watch_key: string} */
-    public function create(string $title, ?string $goal, int $expiryHours, string $creatorIpHash): array
+    public function create(string $title, ?string $goal, int $expiryHours, string $creatorIpHash, bool $holdAgentPosts = false): array
     {
         $watchKey = Keys::key();
         $this->db->run(
-            'INSERT INTO conversations (watch_key, title, goal, created_at, last_activity_at, expires_at, creator_ip_hash)
-             VALUES (?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), UTC_TIMESTAMP() + INTERVAL ? HOUR, ?)',
-            [$watchKey, mb_substr(trim($title), 0, 120), $goal === null || trim($goal) === '' ? null : trim($goal), $expiryHours, $creatorIpHash],
+            'INSERT INTO conversations (watch_key, title, goal, created_at, last_activity_at, expires_at, creator_ip_hash, hold_agent_posts)
+             VALUES (?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), UTC_TIMESTAMP() + INTERVAL ? HOUR, ?, ?)',
+            [$watchKey, mb_substr(trim($title), 0, 120), $goal === null || trim($goal) === '' ? null : trim($goal), $expiryHours, $creatorIpHash, $holdAgentPosts ? 1 : 0],
         );
 
         return ['id' => (int) $this->db->pdo()->lastInsertId(), 'watch_key' => $watchKey];
@@ -43,6 +43,18 @@ final class Conversations
             'UPDATE conversations SET expires_at = UTC_TIMESTAMP() + INTERVAL ? HOUR WHERE id = ?',
             [min($hours, 168), $id],
         );
+    }
+
+    /** Pause (ADR-0010): while set, agents are told to wait and their posts are refused. */
+    public function setPaused(int $id, bool $paused): void
+    {
+        $this->db->run('UPDATE conversations SET paused_at = ' . ($paused ? 'COALESCE(paused_at, UTC_TIMESTAMP())' : 'NULL') . ' WHERE id = ?', [$id]);
+    }
+
+    /** Hold before send (ADR-0010): agent posts wait for the human's approval. */
+    public function setHold(int $id, bool $hold): void
+    {
+        $this->db->run('UPDATE conversations SET hold_agent_posts = ? WHERE id = ?', [$hold ? 1 : 0, $id]);
     }
 
     public function createdRecentlyBy(string $creatorIpHash): int

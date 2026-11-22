@@ -52,6 +52,8 @@ $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '2
         <label class="choice"><input type="radio" name="hours" value="<?= (int) $h ?>" <?= (string) $h === (string) $form['hours'] ? 'checked' : '' ?>> <?= e($hoursLabel((int) $h)) ?></label>
       <?php endforeach; ?>
     </fieldset>
+    <label class="choice review-choice"><input type="checkbox" name="hold" value="on" <?= !empty($form['hold']) ? 'checked' : '' ?>>
+      Review the assistants' messages before they're delivered <span class="hint">— you approve each one</span></label>
     <button type="submit" class="primary">Start the board</button>
   </form>
 </section>

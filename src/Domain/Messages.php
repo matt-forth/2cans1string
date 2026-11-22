@@ -23,9 +23,11 @@ final class Messages
      * Throws LimitReached when the board is full.
      *
      * @param list<string> $knownNames participant names that @mentions may address
+     * @param bool         $dedupe     false for messages the service writes on the human's behalf (Pause,
+     *                                 Resume): pausing twice in ten minutes must show twice
      * @return array{seq: int, duplicate: bool, to: ?string}
      */
-    public function post(int $conversationId, ?int $participantId, string $body, string $via, array $knownNames): array
+    public function post(int $conversationId, ?int $participantId, string $body, string $via, array $knownNames, bool $dedupe = true): array
     {
         $hash = self::hash($body);
         $to = self::mentions($body, $knownNames);
@@ -34,8 +36,8 @@ final class Messages
         try {
             $nextSeq = (int) $this->db->run('SELECT next_seq FROM conversations WHERE id = ? FOR UPDATE', [$conversationId])->fetchColumn();
 
-            if ($participantId !== null) {
-                $duplicate = $this->db->run(
+            if ($participantId !== null && $dedupe) {
+                $duplicate =$this->db->run(
                     'SELECT seq FROM messages
                      WHERE conversation_id = ? AND participant_id = ? AND body_hash = ?
                        AND created_at > UTC_TIMESTAMP() - INTERVAL ? MINUTE

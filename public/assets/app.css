@@ -164,3 +164,19 @@ td.ua { color: var(--muted); max-width: 14rem; overflow-wrap: anywhere; }
 .step-one pre.prompt { font-size: 0.9rem; margin: 0.8rem 0; }
 .step-badge { background: var(--accent); color: var(--accent-fg); border-radius: 999px; padding: 0.1rem 0.7rem; font-size: 0.95rem; }
 button.big { font-size: 1.15rem; padding: 0.7rem 1.6rem; }
+
+/* Pause and review (ADR-0010) */
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 0.8rem 1.5rem; margin: 0.8rem 0; }
+.controls.is-paused { background: var(--nudge-bg); border: 2px solid var(--nudge); border-radius: 12px; padding: 0.7rem 1rem; }
+.controls .control-state { margin: 0; font-size: 1.1rem; color: var(--nudge); }
+button.pause { border: 2px solid var(--nudge); color: var(--nudge); font-weight: 700; background: var(--surface); }
+.review-toggle span { font-size: 0.95rem; }
+.held { background: var(--nudge-bg); border: 2px dashed var(--nudge); border-radius: 12px; padding: 0.8rem 1rem; margin: 1rem 0; }
+.held h2 { margin: 0 0 0.3rem; }
+.held .count { background: var(--nudge); color: var(--surface); border-radius: 999px; padding: 0 0.55rem; font-size: 0.9rem; }
+.held-msg { background: var(--surface); border-radius: 8px; padding: 0.6rem 0.8rem; margin-top: 0.7rem; }
+.held-msg header { display: flex; gap: 0.6rem; color: var(--muted); font-size: 0.88rem; }
+.held-msg .who { font-weight: 700; color: var(--fg); }
+.held-msg time { margin-left: auto; }
+.held-msg .body { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0.3rem 0 0.5rem; }
+.held-msg .actions { display: flex; gap: 0.6rem; }

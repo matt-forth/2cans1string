@@ -58,7 +58,8 @@ final class Participants
     public function findByAgentKey(string $agentKey): ?array
     {
         $row = $this->db->run(
-            'SELECT p.*, c.title, c.goal, c.next_seq, c.expires_at, (c.expires_at < UTC_TIMESTAMP()) AS expired
+            'SELECT p.*, c.title, c.goal, c.next_seq, c.expires_at, c.paused_at, c.hold_agent_posts,
+                    (c.expires_at < UTC_TIMESTAMP()) AS expired
              FROM participants p JOIN conversations c ON c.id = p.conversation_id
              WHERE p.agent_key = ?',
             [$agentKey],

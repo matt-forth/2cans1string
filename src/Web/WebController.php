@@ -11,6 +11,7 @@ use Cans\Db;
 use Cans\Domain\Activity;
 use Cans\Domain\BoardNames;
 use Cans\Domain\Conversations;
+use Cans\Domain\HeldMessages;
 use Cans\Domain\Keys;
 use Cans\Domain\LimitReached;
 use Cans\Domain\Messages;
@@ -25,6 +26,11 @@ final class WebController
     private readonly Participants $participants;
     private readonly Messages $messages;
     private readonly Activity $activity;
+    private readonly HeldMessages $held;
+
+    /** Posted as the human when they press Pause / Resume (ADR-0010). */
+    public const PAUSE_MESSAGE = '@everyone pause, wait for the human.';
+    public const RESUME_MESSAGE = '@everyone resume: carry on where you left off.';
 
     public function __construct(private readonly Config $config, Db $db)
     {
@@ -32,12 +38,13 @@ final class WebController
         $this->participants = new Participants($db, $config);
         $this->messages = new Messages($db, $config);
         $this->activity = new Activity($db);
+        $this->held = new HeldMessages($db, $this->messages);
     }
 
     public function home(Request $request, array $form = [], string $error = ''): void
     {
         Responses::html(View::page('home', '2 cans 1 string', [
-            'form' => $form + ['title' => BoardNames::random(), 'goal' => '', 'lead' => 'lead', 'about' => '', 'hours' => '24'],
+            'form' => $form + ['title' => BoardNames::random(), 'goal' => '', 'lead' => 'lead', 'about' => '', 'hours' => '24', 'hold' => false],
             'error' => $error,
             'expiryChoices' => $this->config->get('expiry_choices_hours'),
             'deleted' => $request->param('deleted') === '1',
@@ -58,6 +65,7 @@ final class WebController
             'lead' => $request->post['lead'] ?? 'lead',
             'about' => trim($request->post['about'] ?? ''),
             'hours' => $request->post['hours'] ?? '24',
+            'hold' => ($request->post['hold'] ?? '') === 'on',
         ];
         $hours = in_array((int) $form['hours'], $this->config->get('expiry_choices_hours'), true) ? (int) $form['hours'] : 24;
         $leadName = Participants::normaliseName($form['lead']);
@@ -77,7 +85,7 @@ final class WebController
         }
 
         $this->conversations->purgeExpired();
-        $conversation = $this->conversations->create($form['title'], $form['goal'], $hours, $ipHash);
+        $conversation = $this->conversations->create($form['title'], $form['goal'], $hours, $ipHash, $form['hold']);
         $this->participants->add($conversation['id'], (string) $this->config->get('human_name'), 'human', null, null);
         $this->participants->add($conversation['id'], (string) $leadName, 'lead', $form['about'], null);
 
@@ -121,6 +129,8 @@ final class WebController
             'messagesHtml' => $new === [] ? '' : View::render('messages', ['messages' => $new]),
             'participantsHtml' => View::render('participants', $model),
             'stepOneHtml' => View::render('step-one', $model),
+            'controlsHtml' => View::render('controls', $model),
+            'heldHtml' => View::render('held', $model),
             'activityHtml' => View::render('activity', $model),
             'expires' => View::until((string) $conversation['expires_at']),
             'expired' => (int) $conversation['expired'] === 1,
@@ -249,6 +259,99 @@ final class WebController
         Responses::redirect($this->config->baseUrl() . '/?deleted=1');
     }
 
+    /**
+     * POST /w/{key}/pause and /resume (ADR-0010). The flag stops agents; the message tells them why,
+     * in the transcript everyone reads.
+     */
+    public function pause(Request $request, string $key, string $which): void
+    {
+        $conversation = $this->find($key);
+        if ($conversation === null) {
+            $this->gone();
+
+            return;
+        }
+        $pause = $which === 'pause';
+        $already = $conversation['paused_at'] !== null;
+        if ($pause !== $already && (int) $conversation['expired'] === 0) {
+            $this->conversations->setPaused((int) $conversation['id'], $pause);
+            $human = $this->humanParticipant((int) $conversation['id']);
+            try {
+                $this->messages->post(
+                    (int) $conversation['id'],
+                    (int) $human['id'],
+                    $pause ? self::PAUSE_MESSAGE : self::RESUME_MESSAGE,
+                    'web',
+                    [],
+                    false,
+                );
+            } catch (LimitReached) {
+                // The flag is what matters; a full board just doesn't get the message.
+            }
+        }
+        $this->redirect($key, $pause ? 'paused' : 'resumed');
+    }
+
+    /** POST /w/{key}/hold — turn "review assistant messages before they're delivered" on or off. */
+    public function hold(Request $request, string $key): void
+    {
+        $conversation = $this->find($key);
+        if ($conversation === null) {
+            $this->gone();
+
+            return;
+        }
+        $on = ($request->post['hold'] ?? '') === 'on';
+        $this->conversations->setHold((int) $conversation['id'], $on);
+        $this->redirect($key, $on ? 'hold-on' : 'hold-off');
+    }
+
+    /** POST /w/{key}/approve and /discard — decide on a held agent message. */
+    public function decide(Request $request, string $key, string $which): void
+    {
+        $conversation = $this->find($key);
+        if ($conversation === null) {
+            $this->gone();
+
+            return;
+        }
+        $id = (int) $conversation['id'];
+        $heldId = (int) ($request->post['id'] ?? 0);
+        if ($which === 'discard') {
+            $this->redirect($key, $this->held->discard($id, $heldId) ? 'discarded' : 'decided');
+
+            return;
+        }
+        if ((int) $conversation['expired'] === 1) {
+            $this->watch($request, $key, 'This board has expired. Extend it first.');
+
+            return;
+        }
+        $names = array_map(
+            static fn (array $p): string => (string) $p['name'],
+            array_filter($this->participants->inConversation($id), static fn (array $p): bool => $p['removed_at'] === null),
+        );
+        try {
+            $seq = $this->held->approve($id, $heldId, array_values($names));
+        } catch (LimitReached) {
+            $this->watch($request, $key, 'This board is full (' . $this->config->get('max_messages') . ' messages). Start a new one.');
+
+            return;
+        }
+        $this->redirect($key, $seq === null ? 'decided' : 'approved');
+    }
+
+    /** @return array<string, mixed> */
+    private function humanParticipant(int $conversationId): array
+    {
+        foreach ($this->participants->inConversation($conversationId) as $p) {
+            if ($p['role'] === 'human') {
+                return $p;
+            }
+        }
+        throw new \RuntimeException("Board {$conversationId} has no human participant");
+    }
+
     /** @return array<string, mixed>|null */
     private function find(string $key): ?array
     {
@@ -321,6 +424,9 @@ final class WebController
 
         return [
             'stepOne' => $stepOne,
+            'paused' => $conversation['paused_at'] !== null,
+            'hold' => (int) $conversation['hold_agent_posts'] === 1,
+            'held' => $this->held->waiting($id),
             'base' => $base,
             'conversation' => $conversation,
             'watchKey' => (string) $conversation['watch_key'],
@@ -351,6 +457,13 @@ final class WebController
             'added' => 'Added. Copy its starter prompt into that assistant.',
             'removed' => 'Removed. Its link no longer works.',
             'extended' => 'Expiry updated.',
+            'paused' => 'Paused. The assistants are told to wait, and their posts are refused until you resume.',
+            'resumed' => 'Resumed. Tell the assistants to check the board.',
+            'hold-on' => "Review is on: assistants' messages wait for your approval before anyone sees them.",
+            'hold-off' => "Review is off: assistants' messages are delivered straight away. Any already waiting still need your decision.",
+            'approved' => 'Approved and delivered.',
+            'discarded' => "Discarded. Its author will be told it wasn't delivered.",
+            'decided' => 'That message was already dealt with.',
             default => '',
         };
     }

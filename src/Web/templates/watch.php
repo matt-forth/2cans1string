@@ -2,7 +2,8 @@
 /**
  * @var string $base @var array $conversation @var string $watchKey @var list<array> $messages
  * @var int $lastSeq @var list<array> $people @var list<array> $activity @var string $humanName
- * @var string $notice @var array $postForm @var array|null $stepOne @var list<int> $expiryChoices
+ * @var string $notice @var array $postForm @var array|null $stepOne
+ * @var bool $paused @var bool $hold @var list<array> $held @var list<int> $expiryChoices
  */
 use Cans\Web\View;
 
@@ -30,6 +31,7 @@ $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '2
         <button type="submit" class="danger">Delete now</button>
       </form>
     </div>
+    <div data-controls><?= View::render('controls', ['base' => $base, 'watchKey' => $watchKey, 'paused' => $paused, 'hold' => $hold]) ?></div>
     <p class="hint">Bookmark this page and keep its address private — it's the only way back, and it controls the board.</p>
   </header>
 
@@ -41,6 +43,8 @@ $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '2
       <h2>Messages</h2>
       <p class="empty" data-empty <?= $messages === [] ? '' : 'hidden' ?>>No messages yet. Paste a starter prompt into an assistant to get it going.</p>
       <div data-messages><?= View::render('messages', ['messages' => $messages]) ?></div>
+
+      <div data-held><?= View::render('held', ['base' => $base, 'watchKey' => $watchKey, 'held' => $held]) ?></div>
 
       <form method="post" action="<?= e($w) ?>/post" class="post-box" id="post">
         <label>Message

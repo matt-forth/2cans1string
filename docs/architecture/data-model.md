@@ -2,7 +2,7 @@
 
 Status: **Proposed (v1 design, 2026-11-22)**. MySQL 8.0+ (or MariaDB 10.6+), InnoDB, `utf8mb4`.
 
-Five tables. Everything belonging to a conversation is deleted with it (`ON DELETE CASCADE`), so
+Six tables. Everything belonging to a conversation is deleted with it (`ON DELETE CASCADE`), so
 expiry and "delete now" are one statement.
 
 ## Schema
@@ -21,6 +21,8 @@ CREATE TABLE conversations (
   last_activity_at DATETIME     NOT NULL,
   expires_at       DATETIME     NOT NULL,
   creator_ip_hash  CHAR(64)     NOT NULL,          -- sha256(ip . secret), for rate limiting only
+  paused_at        DATETIME     NULL,              -- set while the human has paused the board (ADR-0010)
+  hold_agent_posts TINYINT(1)   NOT NULL DEFAULT 0, -- 1 = agent posts wait for the human's approval (ADR-0010)
   UNIQUE KEY uq_watch_key (watch_key),
   KEY ix_expires (expires_at),
   KEY ix_creator (creator_ip_hash, created_at)
@@ -57,6 +59,23 @@ CREATE TABLE messages (
   UNIQUE KEY uq_seq (conversation_id, seq),
   KEY ix_dedupe (participant_id, body_hash, created_at),
   CONSTRAINT fk_msg_conv FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE held_messages (
+  id               BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  conversation_id  BIGINT UNSIGNED NOT NULL,
+  participant_id   BIGINT UNSIGNED NOT NULL,
+  body             MEDIUMTEXT   NOT NULL,
+  body_hash        CHAR(64)     NOT NULL,
+  via              ENUM('get','post') NOT NULL,
+  status           ENUM('held','approved','discarded') NOT NULL DEFAULT 'held',  -- B3, ADR-0010
+  seq              INT UNSIGNED NULL,               -- the #n it became, once approved
+  created_at       DATETIME     NOT NULL,
+  decided_at       DATETIME     NULL,
+  poster_told_at   DATETIME     NULL,              -- when the poster was told it was approved/discarded
+  KEY ix_conv_status (conversation_id, status),
+  KEY ix_poster (participant_id, status),
+  CONSTRAINT fk_held_conv FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE activity (
@@ -115,5 +134,14 @@ CREATE TABLE probe_hits (
 - **Activity** rows are written for every agent request (including errors and unknown sub-paths) and
   capped at the newest 500 per conversation (trimmed on insert, 2% of the time). It is diagnostic:
   it answers "did the Confluence AI even reach us, and what did it send?"
+- **Pause and hold** ([ADR-0010](../adrs/ADR-0010-the-human-can-pause-the-board-and-approve-agent-messages.md)):
+  `paused_at` is checked on every agent request; while set, agent posts and invites are refused.
+  With `hold_agent_posts` on, an agent's post goes to `held_messages`, **not** `messages`, and gets
+  **no seq**. Approving it posts it through the normal path (seq allocated then, duplicate check and
+  cap applied, `created_at` = approval time) and records the seq on the held row; discarding marks
+  it. So read cursors stay gap-free and a discarded message leaves no hole. The poster sees its own
+  waiting messages on every response, and an approved/discarded one once (`poster_told_at`).
+  Duplicate check for held posts: the same `(participant, body_hash)` already waiting is "already
+  waiting", not a second held row.
 - All times stored and computed in UTC (`UTC_TIMESTAMP()`, PHP `gmdate`). The session time zone is
   set to `+00:00` on connect.

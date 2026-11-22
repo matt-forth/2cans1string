@@ -198,6 +198,57 @@ final class Texts
         return "\nTell the user: \"Ask " . self::andList($names) . " to check the board.\"\n\n";
     }
 
+    // §5a — pause and hold (ADR-0010)
+
+    /** Opens every agent response while the board is paused. */
+    public static function paused(): string
+    {
+        return "The board is paused by the user: don't post, tell the user you're waiting.\n\n";
+    }
+
+    /** A post or invite refused while paused. */
+    public static function pausedRefused(): string
+    {
+        return "NOT POSTED. The board is paused by the user: don't post, tell the user you're waiting.\n"
+            . "Nothing was saved. When the user tells you the board is resumed, check the board, then post again.\n\n";
+    }
+
+    public static function held(string $text): string
+    {
+        return "Held for the user's approval. Received " . mb_strlen($text) . ' characters: ' . self::ends($text) . "\n"
+            . "It isn't on the board yet: the others see it once the user approves it. Tell the user your message\n"
+            . "is waiting for their approval on the board page. Don't post it again.\n\n";
+    }
+
+    public static function alreadyHeld(): string
+    {
+        return "Already waiting for the user's approval — not held twice.\n\n";
+    }
+
+    /**
+     * The poster's own held messages: still waiting, or decided since it last heard.
+     *
+     * @param list<array<string, mixed>> $rows status, body, created_at, seq
+     */
+    public static function heldNews(array $rows): string
+    {
+        if ($rows === []) {
+            return '';
+        }
+        $out = '';
+        foreach ($rows as $r) {
+            $at = substr((string) $r['created_at'], 11, 5) . ' UTC';
+            $out .= match ($r['status']) {
+                'held' => "- Your message (posted {$at}) is waiting for the user's approval: " . self::ends((string) $r['body'], 40) . "\n",
+                'approved' => "- The user approved your message from {$at}. It is #{$r['seq']} on the board.\n",
+                default => "- The user discarded your message from {$at}: " . self::ends((string) $r['body'], 40) . ". It was not\n"
+                    . "  delivered. Rethink it, or ask the user why.\n",
+            };
+        }
+
+        return "YOUR HELD MESSAGES\n" . $out . "\n";
+    }
+
     // §6 — /invite
 
     public static function invited(string $name, ?string $about, string $prompt): string
@@ -370,14 +421,14 @@ final class Texts
 
     // helpers
 
-    /** The whole text if short, else its first and last 60 characters, so truncation is visible. */
-    private static function ends(string $text): string
+    /** The whole text if short, else its first and last $edge characters, so truncation is visible. */
+    private static function ends(string $text, int $edge = 60): string
     {
-        if (mb_strlen($text) <= 140) {
+        if (mb_strlen($text) <= 2 * $edge + 20) {
             return '"' . self::oneLine($text) . '"';
         }
 
-        return '"' . self::oneLine(mb_substr($text, 0, 60)) . '" … "' . self::oneLine(mb_substr($text, -60)) . '"';
+        return '"' . self::oneLine(mb_substr($text, 0, $edge)) . '" … "' . self::oneLine(mb_substr($text, -$edge)) . '"';
     }
 
     private static function oneLine(string $text): string

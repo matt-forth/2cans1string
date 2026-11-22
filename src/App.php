@@ -51,6 +51,9 @@ final class App
         $router->add(['POST'], '#^/w/([^/]+)/remove$#', $web->remove(...));
         $router->add(['POST'], '#^/w/([^/]+)/extend$#', $web->extend(...));
         $router->add(['POST'], '#^/w/([^/]+)/delete$#', $web->delete(...));
+        $router->add(['POST'], '#^/w/([^/]+)/(pause|resume)$#', $web->pause(...));
+        $router->add(['POST'], '#^/w/([^/]+)/hold$#', $web->hold(...));
+        $router->add(['POST'], '#^/w/([^/]+)/(approve|discard)$#', $web->decide(...));
         // Anything under /a/ reaches the agent controller, so a mangled key or sub-path gets the helpful
         // text rather than a bare 404.
         $router->add(['GET', 'POST'], '#^/a/([^/]+)(?:/(.*))?$#', $agent->handle(...));

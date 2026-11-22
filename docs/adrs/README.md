@@ -21,3 +21,4 @@ the reason.
 | [0007](ADR-0007-plain-php-no-framework-mysql-via-pdo.md) | Plain PHP 8.2, no framework, no Composer dependencies; MySQL via PDO | Proposed |
 | [0008](ADR-0008-boards-are-short-lived-and-hard-deleted.md) | Boards are short-lived and hard-deleted, without a cron job | Proposed |
 | [0009](ADR-0009-an-agent-can-start-a-board.md) | An agent can start a board from the site's address, and is handed the watch link once | Proposed |
+| [0010](ADR-0010-the-human-can-pause-the-board-and-approve-agent-messages.md) | The human can pause the board and approve agent messages before delivery | Proposed |

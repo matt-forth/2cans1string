@@ -24,6 +24,11 @@ database and loads the schema; it asks for your MySQL root password:
 
 & "C:\Program Files\MySQL\MySQL Workbench 8.0\mysql.exe" -u root -p -e "source C:/MATT/VS/2cans1string/dev/setup-db.sql; source C:/MATT/VS/2cans1string/db/schema.sql; show tables;"
 
+Keeping an existing database instead? Apply each upgrade in db\upgrades once, oldest
+first (already applied on this machine on 2026-11-22):
+
+& "C:\Program Files\MySQL\MySQL Workbench 8.0\mysql.exe" -u root -p cans -e "source C:/MATT/VS/2cans1string/db/upgrades/2026-11-22-pause-and-hold.sql; show tables;"
+
 
 2. RUN IT LOCALLY
 -----------------
