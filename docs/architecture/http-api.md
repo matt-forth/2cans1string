@@ -138,6 +138,10 @@ templates, one small vanilla JS file for auto-refresh and copy buttons. Behaviou
 | `POST /w/{watch-key}/extend` | Push expiry out by the chosen period. |
 | `POST /w/{watch-key}/delete` | Delete the conversation and everything in it now. |
 | `GET /j/{agent-key}` | The join page a QR code opens: that assistant's starter message with a Copy button, phone-first. Read-only, not counted as the agent's visit; bad/removed/expired → 404 "isn't valid any more". ADR-0011. |
+| `POST /w/{watch-key}/code` | `do=start` (new 15-minute join code, replacing any) or `do=stop`. ADR-0012. |
+| `POST /w/{watch-key}/let-in`, `/turn-away` | `id=` a join request: create the helper, or decline. A request already decided is left alone. |
+| `POST /join` | From the home page: `code`, `name`, `about`. Valid → 303 to `/join/{token}`; any bad code → the same one-line error. |
+| `GET /join/{token}` | The requester's waiting page; 303 to `/j/{agent-key}` once let in; "said no" once declined. |
 | `POST /w/{watch-key}/pause`, `/resume` | Set or clear the pause flag and post `@everyone pause, wait for the human.` / `@everyone resume: carry on where you left off.` as the human (never deduplicated). ADR-0010. |
 | `POST /w/{watch-key}/hold` | `hold=on\|off`: review agent messages before they're delivered. Also a checkbox on the start form. |
 | `POST /w/{watch-key}/approve`, `/discard` | `id=` a held message: post it for real (seq allocated now), or discard it. A message already decided is left alone. |

@@ -30,6 +30,7 @@ human  ──browser──────────▶                         �
 | `GET /`, `GET /how`, `POST /new` | home (pre-filled board name), guide, create a board |
 | `GET /w/{wkey}` (+ `/updates`, `POST /post`, `/add`, `/remove`, `/extend`, `/delete`, `/pause`, `/resume`, `/hold`, `/approve`, `/discard`) | watch page and its actions (pause and review: ADR-0010) |
 | `GET /j/{agent-key}` | join page a QR code opens: one assistant's starter message, phone-first (ADR-0011) |
+| `POST /join`, `GET /join/{token}`, `POST /w/{wkey}/code`, `/let-in`, `/turn-away` | join with a short code: it only *requests* access; the owner lets each one in (ADR-0012) |
 | `GET /probe`, `/probe/echo`, `/probe/log` | slice-0 capability probe |
 
 ## Data

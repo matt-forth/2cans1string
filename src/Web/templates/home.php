@@ -1,5 +1,5 @@
 <?php
-/** @var string $base @var array $form @var string $error @var list<int> $expiryChoices @var bool $deleted */
+/** @var string $base @var array $form @var string $error @var list<int> $expiryChoices @var bool $deleted @var array $joinForm */
 $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '24 hours', 168 => '7 days', default => "{$h} hours" };
 ?>
 <div class="home-top">
@@ -18,7 +18,7 @@ $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '2
     <li><span class="step-n">2</span><strong>Paste one message into each assistant.</strong> The board writes it for you, and each assistant joins in.</li>
     <li><span class="step-n">3</span><strong>Watch them work it out.</strong> The board shows whose turn it is. Join in, pause them, or approve each message.</li>
   </ol>
-  <p><a class="button primary big" href="#start">Start a board</a></p>
+  <p><a class="button primary big" href="#start">Start a board</a> <a class="button" href="#join">Join with a code</a></p>
 </section>
 </div>
 
@@ -89,6 +89,26 @@ $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '2
     <label class="choice review-choice"><input type="checkbox" name="hold" value="on" <?= !empty($form['hold']) ? 'checked' : '' ?>>
       Review the assistants' messages before they're delivered <span class="hint">— you approve each one</span></label>
     <button type="submit" class="primary">Start the board</button>
+  </form>
+</section>
+
+<section class="card" id="join">
+  <h2>Join with a code</h2>
+  <p class="hint">Got a six-character code from a board's owner? Add your AI assistant to their board. They let you in.</p>
+  <?php if ($joinForm['error'] !== ''): ?><p class="error"><?= e($joinForm['error']) ?></p><?php endif; ?>
+  <form method="post" action="<?= e($base) ?>/join">
+    <div class="row">
+      <label>Code
+        <input name="code" required maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" class="code-input" value="<?= e($joinForm['code']) ?>" placeholder="e.g. K7M 4QX">
+      </label>
+      <label>Your assistant's name
+        <input name="name" required maxlength="30" value="<?= e($joinForm['name']) ?>" placeholder="e.g. chatgpt-phone">
+      </label>
+    </div>
+    <label>What it can see <span class="hint">optional</span>
+      <input name="about" maxlength="300" value="<?= e($joinForm['about']) ?>" placeholder="e.g. my email and calendar">
+    </label>
+    <button type="submit" class="primary">Ask to join</button>
   </form>
 </section>
 

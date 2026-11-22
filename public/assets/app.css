@@ -308,3 +308,9 @@ a.button.big { font-size: 1.15rem; padding: 0.7rem 1.6rem; }
 .join-steps { font-size: 1.1rem; padding-left: 1.3rem; }
 .join-steps li { margin-bottom: 0.4rem; }
 .join-copy { width: 100%; margin: 0.6rem 0 1rem; }
+
+/* Join codes (ADR-0012) */
+.join-code { font-family: var(--mono); font-size: 2.4rem; font-weight: 800; letter-spacing: 0.12em; text-align: center; margin: 0.2rem 0 0.4rem; color: var(--accent); }
+.code-input { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.1em; }
+.join-code-card h2 { margin-top: 0; }
+#join { scroll-margin-top: 1rem; }

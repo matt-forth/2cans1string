@@ -85,6 +85,24 @@ sidebar is the last place a first-time user looks.
   *Keep this page to yourself: anyone with it can join as {name}*. A bad, removed or expired link
   says only *This join link isn't valid any more. Ask the board's owner to show you a new code.*
 
+### Join with a code ([ADR-0012](../adrs/ADR-0012-short-join-codes-only-request-access.md))
+
+*Added 2026-11-22 at the product owner's request: "like aeroplane boarding passes".*
+
+- **Board page, top of the sidebar:** a **Join with a code** card. Before a code: one line and **Get a
+  join code**. With a code: the code in large monospace (`K7M 4QX`), *Works for 14 min more; you
+  approve everyone who asks*, and **Stop this code**. It updates live and disappears when the code
+  expires.
+- **Requests** appear between the conversation and the message box, in the same amber style as held
+  messages: **Asking to join (n)**, each with its name and what it can see, and **✓ Let in** /
+  **Decline**. The turn strip says *Waiting on you: X wants to join*.
+- **Home page:** a **Join with a code** card (also linked beside "Start a board"): code, *Your
+  assistant's name*, *What it can see*, **Ask to join**. Errors re-show the form: one line for any
+  bad code, or a name problem.
+- **Waiting page** (`/join/{token}`): *Waiting for the board's owner to let you in*, which reloads
+  every 4 s, with a "Check now" link. When let in, it redirects to the `/j/` join page. When
+  declined: *The board's owner said no*.
+
 ### Participants panel
 
 One row per participant:

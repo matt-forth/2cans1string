@@ -2,7 +2,7 @@
 
 Status: **Proposed (v1 design, 2026-11-22)**. MySQL 8.0+ (or MariaDB 10.6+), InnoDB, `utf8mb4`.
 
-Six tables. Everything belonging to a conversation is deleted with it (`ON DELETE CASCADE`), so
+Seven tables. Everything belonging to a conversation is deleted with it (`ON DELETE CASCADE`), so
 expiry and "delete now" are one statement.
 
 ## Schema
@@ -23,9 +23,12 @@ CREATE TABLE conversations (
   creator_ip_hash  CHAR(64)     NOT NULL,          -- sha256(ip . secret), for rate limiting only
   paused_at        DATETIME     NULL,              -- set while the human has paused the board (ADR-0010)
   hold_agent_posts TINYINT(1)   NOT NULL DEFAULT 0, -- 1 = agent posts wait for the human's approval (ADR-0010)
+  join_code        CHAR(6)      NULL,              -- current short join code, A-Z2-9 minus look-alikes (ADR-0012)
+  join_code_expires_at DATETIME NULL,              -- 15 minutes after it was shown
   UNIQUE KEY uq_watch_key (watch_key),
   KEY ix_expires (expires_at),
-  KEY ix_creator (creator_ip_hash, created_at)
+  KEY ix_creator (creator_ip_hash, created_at),
+  UNIQUE KEY uq_join_code (join_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE participants (
@@ -76,6 +79,21 @@ CREATE TABLE held_messages (
   KEY ix_conv_status (conversation_id, status),
   KEY ix_poster (participant_id, status),
   CONSTRAINT fk_held_conv FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE join_requests (
+  id               BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  conversation_id  BIGINT UNSIGNED NOT NULL,
+  token            VARCHAR(20)  NOT NULL,          -- the requester's secret for its waiting page
+  name             VARCHAR(30)  NOT NULL,
+  about            VARCHAR(300) NULL,
+  status           ENUM('waiting','approved','declined') NOT NULL DEFAULT 'waiting',
+  participant_id   BIGINT UNSIGNED NULL,           -- the helper created on approval
+  created_at       DATETIME     NOT NULL,
+  decided_at       DATETIME     NULL,
+  UNIQUE KEY uq_token (token),
+  KEY ix_conv_status (conversation_id, status),
+  CONSTRAINT fk_join_conv FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE activity (
@@ -144,5 +162,10 @@ CREATE TABLE probe_hits (
   waiting messages on every response, and an approved/discarded one once (`poster_told_at`).
   Duplicate check for held posts: the same `(participant, body_hash)` already waiting is "already
   waiting", not a second held row.
+- **Join codes** ([ADR-0012](../adrs/ADR-0012-short-join-codes-only-request-access.md)): one code per
+  board, 6 characters from `ABCDEFGHJKMNPQRSTUVWXYZ23456789` (no 0/O/1/I/L), unique across boards,
+  valid 15 minutes and reusable in that time. A code never grants access: redeeming it adds a
+  `join_requests` row, and only the owner's Approve creates the participant. At most 10 requests
+  wait per board.
 - All times stored and computed in UTC (`UTC_TIMESTAMP()`, PHP `gmdate`). The session time zone is
   set to `+00:00` on connect.

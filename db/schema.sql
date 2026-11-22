@@ -13,9 +13,12 @@ CREATE TABLE conversations (
   creator_ip_hash  CHAR(64)     NOT NULL,
   paused_at        DATETIME     NULL,
   hold_agent_posts TINYINT(1)   NOT NULL DEFAULT 0,
+  join_code        CHAR(6)      NULL,
+  join_code_expires_at DATETIME NULL,
   UNIQUE KEY uq_watch_key (watch_key),
   KEY ix_expires (expires_at),
-  KEY ix_creator (creator_ip_hash, created_at)
+  KEY ix_creator (creator_ip_hash, created_at),
+  UNIQUE KEY uq_join_code (join_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE participants (
@@ -66,6 +69,21 @@ CREATE TABLE held_messages (
   KEY ix_conv_status (conversation_id, status),
   KEY ix_poster (participant_id, status),
   CONSTRAINT fk_held_conv FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE join_requests (
+  id               BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  conversation_id  BIGINT UNSIGNED NOT NULL,
+  token            VARCHAR(20)  NOT NULL,
+  name             VARCHAR(30)  NOT NULL,
+  about            VARCHAR(300) NULL,
+  status           ENUM('waiting','approved','declined') NOT NULL DEFAULT 'waiting',
+  participant_id   BIGINT UNSIGNED NULL,
+  created_at       DATETIME     NOT NULL,
+  decided_at       DATETIME     NULL,
+  UNIQUE KEY uq_token (token),
+  KEY ix_conv_status (conversation_id, status),
+  CONSTRAINT fk_join_conv FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE activity (

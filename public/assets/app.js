@@ -147,6 +147,9 @@
 
   localiseTimes(document);
 
+  // ---- join waiting page (ADR-0012): check again every few seconds until the owner decides ----
+  if ($('[data-join-wait]')) setTimeout(function () { location.reload(); }, 4000);
+
   // ---- home: recent boards, from this browser only ------------------------------------------
 
   var recentList = $('[data-recent-list]');
@@ -217,6 +220,10 @@
   var controls = $('[data-controls]', watch);
   var held = $('[data-held]', watch);
   var turn = $('[data-turn]', watch);
+  var joins = $('[data-joins]', watch);
+  var codeCard = $('[data-code]', watch);
+  var lastJoins = joins.innerHTML;
+  var lastCode = codeCard.innerHTML;
   var lastTurn = turn.innerHTML;
   var lastControls = controls.innerHTML;
   var lastHeld = held.innerHTML;
@@ -262,6 +269,8 @@
         lastSeq = data.lastSeq;
         if (data.participantsHtml !== lastParticipants) { lastParticipants = data.participantsHtml; replaceKeepingOpen(participants, data.participantsHtml); }
         if (stepOne && data.stepOneHtml === '' && stepOne.innerHTML.trim() !== '') stepOne.innerHTML = '';
+        if (data.joinsHtml !== lastJoins) { lastJoins = data.joinsHtml; joins.innerHTML = data.joinsHtml; }
+        if (data.codeHtml !== lastCode) { lastCode = data.codeHtml; codeCard.innerHTML = data.codeHtml; }
         if (data.turnHtml !== lastTurn) { lastTurn = data.turnHtml; turn.innerHTML = data.turnHtml; }
         if (data.controlsHtml !== lastControls) { lastControls = data.controlsHtml; controls.innerHTML = data.controlsHtml; }
         if (data.heldHtml !== lastHeld) { lastHeld = data.heldHtml; replaceKeepingOpen(held, data.heldHtml); }

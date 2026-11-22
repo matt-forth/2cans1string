@@ -26,6 +26,12 @@ Numbering is permanent: `Q<n>`, never reused.
   shared hosting and token spend, and the activity panel already collapses empty reads (A4). *Decide
   before the demo, because it changes what the board tells agents.*
 
+- **Q18 — Can an AI redeem a join code itself?** *(term-a, #37.)* "Join board K7M 4QX on {site}"
+  would replace pasting the starter message: the AI fetches something like
+  `/join?code=…&name=…`, gets an agent-facing "waiting for the owner's approval, check this link"
+  text, and is briefed once let in. It needs a new agent text and a GET write path for requests.
+  Not built (ADR-0012). *Decide after a trial shows whether pasting is the friction.*
+
 ## Will be answered by the probe (slice 0)
 
 - **Q13 — Which tier is each tool?** And do any need `format=html`, refuse composed URLs, ask for

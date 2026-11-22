@@ -12,6 +12,7 @@ use Cans\Domain\Activity;
 use Cans\Domain\BoardNames;
 use Cans\Domain\Conversations;
 use Cans\Domain\HeldMessages;
+use Cans\Domain\JoinCodes;
 use Cans\Domain\Keys;
 use Cans\Domain\LimitReached;
 use Cans\Domain\Messages;
@@ -27,6 +28,7 @@ final class WebController
     private readonly Messages $messages;
     private readonly Activity $activity;
     private readonly HeldMessages $held;
+    private readonly JoinCodes $joinCodes;
 
     /** Posted as the human when they press Pause / Resume (ADR-0010). */
     public const PAUSE_MESSAGE = '@everyone pause, wait for the human.';
@@ -39,12 +41,15 @@ final class WebController
         $this->messages = new Messages($db, $config);
         $this->activity = new Activity($db);
         $this->held = new HeldMessages($db, $this->messages);
+        $this->joinCodes = new JoinCodes($db, $this->participants);
     }
 
-    public function home(Request $request, array $form = [], string $error = ''): void
+    /** @param array<string, string> $joinForm the "Join with a code" form, re-shown with its error */
+    public function home(Request $request, array $form = [], string $error = '', array $joinForm = []): void
     {
         Responses::html(View::page('home', '2 cans 1 string', [
             'form' => $form + ['title' => BoardNames::random(), 'goal' => '', 'lead' => 'lead', 'about' => '', 'hours' => '24', 'hold' => true],
+            'joinForm' => $joinForm + ['code' => '', 'name' => '', 'about' => '', 'error' => ''],
             'error' => $error,
             'expiryChoices' => $this->config->get('expiry_choices_hours'),
             'deleted' => $request->param('deleted') === '1',
@@ -140,6 +145,101 @@ final class WebController
         ], $this->config->baseUrl()));
     }
 
+    /** POST /w/{key}/code — "start" a fresh join code (replacing any), or "stop" it (ADR-0012). */
+    public function code(Request $request, string $key): void
+    {
+        $conversation = $this->find($key);
+        if ($conversation === null) {
+            $this->gone();
+
+            return;
+        }
+        if (($request->post['do'] ?? '') === 'stop') {
+            $this->joinCodes->stop((int) $conversation['id']);
+            $this->redirect($key, 'code-stopped');
+
+            return;
+        }
+        if ((int) $conversation['expired'] === 1) {
+            $this->watch($request, $key, 'This board has expired. Extend it first.');
+
+            return;
+        }
+        $this->joinCodes->start((int) $conversation['id']);
+        $this->redirect($key, 'code-started');
+    }
+
+    /** POST /w/{key}/let-in and /turn-away — decide on a request to join by code. */
+    public function admit(Request $request, string $key, string $which): void
+    {
+        $conversation = $this->find($key);
+        if ($conversation === null) {
+            $this->gone();
+
+            return;
+        }
+        $id = (int) $conversation['id'];
+        $requestId = (int) ($request->post['id'] ?? 0);
+        if ($which === 'turn-away') {
+            $this->joinCodes->decline($id, $requestId);
+            $this->redirect($key, 'join-declined');
+
+            return;
+        }
+        try {
+            $name = $this->joinCodes->approve($id, $requestId);
+        } catch (LimitReached) {
+            $this->watch($request, $key, 'This board already has ' . $this->config->get('max_participants') . ' participants. Remove one first.');
+
+            return;
+        }
+        $this->redirect($key, $name === null ? 'decided' : 'join-approved');
+    }
+
+    /** POST /join — someone with a code asks to join (from the home page). */
+    public function requestJoin(Request $request): void
+    {
+        $form = [
+            'code' => trim($request->post['code'] ?? ''),
+            'name' => trim($request->post['name'] ?? ''),
+            'about' => trim($request->post['about'] ?? ''),
+        ];
+        $result = $this->joinCodes->request($form['code'], $form['name'], $form['about']);
+        if ($result['ok']) {
+            Responses::redirect($this->config->baseUrl() . '/join/' . $result['token']);
+
+            return;
+        }
+        $error = match ($result['error']) {
+            'name' => 'Give the assistant a short name: letters, digits and dashes, e.g. chatgpt-phone.',
+            'taken' => 'That name is already used on this board. Choose another.',
+            'full' => 'Too many requests are waiting on this board. Ask its owner to deal with them first.',
+            default => "That code isn't valid. Check it, or ask the board's owner for a new one.",
+        };
+        $this->home($request, [], '', $form + ['error' => $error]);
+    }
+
+    /** GET /join/{token} — the requester's waiting page; becomes the join page once approved. */
+    public function joinWaiting(Request $request, string $token): void
+    {
+        $row = $this->joinCodes->findRequest($token);
+        if ($row === null || (int) $row['expired'] === 1) {
+            Responses::html(View::page('join-gone', 'Join link not valid — 2 cans 1 string', [], $this->config->baseUrl()), 404);
+
+            return;
+        }
+        if ($row['status'] === 'approved' && $row['agent_key'] !== null) {
+            Responses::redirect($this->config->baseUrl() . '/j/' . $row['agent_key']);
+
+            return;
+        }
+        Responses::html(View::page('join-wait', 'Waiting to join — 2 cans 1 string', [
+            'name' => (string) $row['name'],
+            'title' => (string) $row['title'],
+            'declined' => $row['status'] !== 'waiting',
+        ], $this->config->baseUrl()));
+    }
+
     /** GET /w/{key}/updates?after=n — the watch page's polling (JSON carrying server-rendered, escaped HTML). */
     public function updates(Request $request, string $key): void
     {
@@ -162,6 +262,8 @@ final class WebController
             'stepOneHtml' => View::render('step-one', $model),
             'controlsHtml' => View::render('controls', $model),
             'heldHtml' => View::render('held', $model),
+            'joinsHtml' => View::render('join-requests', $model),
+            'codeHtml' => View::render('join-code', $model),
             'activityHtml' => View::render('activity', $model),
             'expires' => View::until((string) $conversation['expires_at']),
             'expired' => (int) $conversation['expired'] === 1,
@@ -458,6 +560,7 @@ final class WebController
 
         $paused = $conversation['paused_at'] !== null;
         $held = $this->held->waiting($id);
+        $joinRequests = $this->joinCodes->waiting($id);
         if ($paused) {
             // "Ask it to check the board" would contradict the pause (term-a, #18).
             foreach ($people as $i => $person) {
@@ -473,7 +576,11 @@ final class WebController
             'paused' => $paused,
             'hold' => (int) $conversation['hold_agent_posts'] === 1,
             'held' => $held,
-            'turn' => self::turn($people, $stepOne, $paused, count($held), $messages === [], $this->askedHuman($id, $everyone)),
+            'joinRequests' => $joinRequests,
+            'joinCode' => $conversation['join_code'] !== null && strtotime($conversation['join_code_expires_at'] . ' UTC') > time()
+                ? ['code' => JoinCodes::display((string) $conversation['join_code']), 'expires' => (string) $conversation['join_code_expires_at']]
+                : null,
+            'turn' => self::turn($people, $stepOne, $paused, count($held), $messages === [], $this->askedHuman($id, $everyone), array_map(static fn (array $r): string => (string) $r['name'], $joinRequests)),
             'palette' => View::palette($everyone),
             'base' => $base,
             'conversation' => $conversation,
@@ -494,13 +601,16 @@ final class WebController
      * @param list<string>               $askers  who addressed the human since the human last posted
      * @return array{kind: string, text: string} kind: paused | you | agent | idle
      */
-    private static function turn(array $people, ?array $stepOne, bool $paused, int $heldCount, bool $noMessages, array $askers = []): array
+    private static function turn(array $people, ?array $stepOne, bool $paused, int $heldCount, bool $noMessages, array $askers = [], array $joiners = []): array
     {
         if ($paused) {
             return ['kind' => 'paused', 'text' => 'Paused. The assistants are waiting for you to resume.'];
         }
         if ($heldCount > 0) {
             return ['kind' => 'you', 'text' => 'Waiting on you: ' . ($heldCount === 1 ? 'a message' : "{$heldCount} messages") . ' to approve.'];
+        }
+        if ($joiners !== []) {
+            return ['kind' => 'you', 'text' => 'Waiting on you: ' . Texts::andList($joiners) . (count($joiners) === 1 ? ' wants' : ' want') . ' to join.'];
         }
         if ($askers !== []) {
             return ['kind' => 'you', 'text' => 'Waiting on you: ' . Texts::andList($askers) . ' asked you something.'];
@@ -578,7 +688,11 @@ final class WebController
             'hold-off' => "Review is off: assistants' messages are delivered straight away. Any already waiting still need your decision, and appear when you approve them, after anything posted meanwhile.",
             'approved' => 'Approved and delivered.',
             'discarded' => "Discarded. Its author will be told it wasn't delivered.",
-            'decided' => 'That message was already dealt with.',
+            'decided' => 'That was already dealt with.',
+            'code-started' => 'Join code ready. Show it, or read it out: it works for 15 minutes.',
+            'code-stopped' => 'Join code stopped. Nobody new can ask to join with it.',
+            'join-approved' => "Let in. Their phone now shows the message to paste into their AI app.",
+            'join-declined' => 'Declined. They see that you said no.',
             default => '',
         };
     }

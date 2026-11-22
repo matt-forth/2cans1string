@@ -4,6 +4,7 @@
  * @var int $lastSeq @var list<array> $people @var list<array> $activity @var string $humanName
  * @var string $notice @var array $postForm @var array|null $stepOne
  * @var bool $paused @var bool $hold @var list<array> $held @var list<int> $expiryChoices
+ * @var list<array> $joinRequests @var array|null $joinCode
  * @var array{kind: string, text: string} $turn @var array<int, array{c: string, ini: string}> $palette
  */
 use Cans\Web\View;
@@ -62,6 +63,7 @@ $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '2
       <div class="chat" data-messages><?= View::render('messages', ['messages' => $messages, 'palette' => $palette]) ?></div>
 
       <div data-held><?= View::render('held', ['base' => $base, 'watchKey' => $watchKey, 'held' => $held]) ?></div>
+      <div data-joins><?= View::render('join-requests', ['base' => $base, 'watchKey' => $watchKey, 'joinRequests' => $joinRequests]) ?></div>
 
       <?php
         // B4: posting as the human is the main action, and the only identity the board can vouch for:
@@ -97,6 +99,7 @@ $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '2
     </section>
 
     <aside>
+      <div data-code><?= View::render('join-code', ['base' => $base, 'watchKey' => $watchKey, 'joinCode' => $joinCode]) ?></div>
       <h2>Assistants</h2>
       <div data-participants><?= View::render('participants', ['people' => $people, 'watchKey' => $watchKey, 'base' => $base, 'palette' => $palette]) ?></div>
 
