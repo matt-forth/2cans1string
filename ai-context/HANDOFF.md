@@ -2,7 +2,7 @@
 
 > Give this file to a coding agent (Claude Code, GitHub Copilot or similar) to continue the work.
 > It is self-contained: read this first, then the documents it points at.
-> Last updated: 2026-11-22. Written at the end of the design session.
+> Last updated: 2026-11-23 (sections 2–3 brought up to date; the rest dates from the design session).
 >
 > If this file and [resume.md](resume.md) / [progress.md](progress.md) disagree on the current
 > state, those two win — they are updated every session; this one only at milestones.
@@ -42,19 +42,19 @@ Constraints already stated in the brief:
 
 ## 2. Current state
 
-**v1 design written (2026-11-22), awaiting review. No code.** The design is in `docs/architecture/`,
-`docs/design/` and `docs/adrs/` (ADR-0001 to 0008, Proposed); compressed in
+**Built and live at https://2cans1string.com (deployed 2026-11-22, cPanel shared hosting).**
+Slices 0–2 plus the demo brief (pause and review, conversation view, QR codes, join codes, deploy kit)
+are on `feature/demo-polish`. The design is in `docs/architecture/`, `docs/design/` and `docs/adrs/`
+(ADR-0001 to 0012, all still Proposed); compressed in
 [architecture-summary.md](architecture-summary.md). See [progress.md](progress.md) for what was
 decided and why, including where the design departs from the brief's sketch.
 
 ## 3. What's next
 
-1. Product owner reviews the design; feedback goes into the docs and the (still Proposed) ADRs.
-2. Q8, Q11, Q12 answered ([open-questions.md](open-questions.md)).
-3. Build **slice 0 — the capability probe** ([plans/build-v1.md](plans/build-v1.md)), run it against
-   each target tool, and stop for go/no-go. Then slices 1–3.
-4. Do **not** build slices 1–3 before the probe results are in — the biggest risk is that the target
-   agents won't make these requests at all ([`docs/architecture/risks.md`](../docs/architecture/risks.md)).
+The live list is the "Next action" section of [resume.md](resume.md). In short: merge
+`feature/demo-polish` and push to GitHub, then trial non-Claude tools (M365 Copilot, Rovo,
+VS Copilot). So far only Claude Code has used the service, and the biggest risk is still that other
+agents won't make these requests ([`docs/architecture/risks.md`](../docs/architecture/risks.md)).
 
 ## 4. Repository layout
 
@@ -65,7 +65,8 @@ decided and why, including where the design departs from the brief's sketch.
 | `docs/architecture/` | The normative design. |
 | `docs/design/` | Agreed rules for behaviour and wording, with reasons. |
 | `docs/adrs/` | Architecture Decision Records. Immutable once accepted. |
-| `how to run.txt` | Copy-paste commands for the human. Empty until there is something to run. |
+| `public/`, `src/`, `db/`, `tests/`, `dev/` | The code: web root, PHP sources, schema, tests, dev scripts. |
+| `how to run.txt` | Copy-paste commands for the human (tests, local run, deploy, probes). |
 | `CLAUDE.md`, `.github/copilot-instructions.md` | Pointers into `ai-context/` for each agent tool. |
 
 ## 5. Working agreement for the agent

@@ -7,9 +7,9 @@ Update this at the end of every working session. Newest session-log entry at the
 **Live at https://2cans1string.com since 2026-11-22 (11:00 UTC).** Earlier the same day it was demo-ready locally: Slices 0–2, the fixes from the
 first terminal-to-terminal trial, the demo-polish brief (pause, review before delivery, conversation
 view, home page) and the shared-hosting deployment kit are built, tested and committed on
-`feature/demo-polish` (baseline `db7331f` on `main`). 62 tests pass, and `tests/smoke.ps1` passes
-against localhost and against the packaged upload layout. Next: the product owner deploys
-(`docs/deploy.md`), decides Q15–Q17, and merges the branch.
+`feature/demo-polish` (baseline `db7331f` on `main`). 73 tests pass (2026-11-23), and `tests/smoke.ps1` passes
+against localhost and against the packaged upload layout. Next: the product owner decides Q15,
+merges the branch and pushes to GitHub, and trials non-Claude tools (see `resume.md`).
 
 ## Done
 
@@ -34,9 +34,9 @@ against localhost and against the packaged upload layout. Next: the product owne
 
 ## Not started
 
-- Deployment to the host and cloud-tool probe runs (product owner; everything is ready: `docs/deploy.md`).
+- Cloud-tool probe runs (product owner). Deployment is done: live since 2026-11-22.
 - A trial with a non-Claude AI tool (so far only two Claude Code terminals have used it).
-- Three-agent trial; accepting the ADRs (0001–0010, all Proposed).
+- Three-agent trial; accepting the ADRs (0001–0012, all Proposed).
 
 ## The open risk that matters most
 
@@ -49,7 +49,7 @@ what is unknown until probed. See `docs/architecture/risks.md`.
 - Q15 (should looping agents poll?) and Q18 (an AI redeeming a join code): see `open-questions.md`.
   Q16 and Q17 are answered.
 - Merge `feature/demo-polish` into `main`; push (no remote yet).
-- Accept / change the design (ADR-0001 to 0010).
+- Accept / change the design (ADR-0001 to 0012).
 - Q9 company data policy is deferred until after a demo (see the session log).
 
 ## Known issues / debt
@@ -59,6 +59,24 @@ what is unknown until probed. See `docs/architecture/risks.md`.
   probe shows a tool sending raw spaces it will look like "no hit at all".
 
 ## Session log
+
+### 2026-11-23 — Home copy, README, docs catch-up
+
+- Home page lede no longer says "at work" (product owner): *"Most of us use several AI assistants
+  now, and each one sees only its own tools and information…"*. Recorded in
+  `docs/design/human-pages.md`.
+- README rewritten: leads with the live site, explains GET-as-write, how it works, status and risk,
+  self-hosting, repository map.
+- Stale docs brought up to date: HANDOFF §2–3 (said "no code"), architecture-summary header,
+  progress status (said deploy was next; ADR range 0001–0012).
+- `PRODUCT.md` added at the root (Impeccable design context); its positioning line is a draft for
+  the product owner to confirm.
+- References to the product owner's other project removed (progress log, init prompt). The
+  `C:\MATT\...` paths and the `matt` example names stay for now.
+- Home page: small "Open source on GitHub" link above the pitch
+  (https://github.com/matt-forth/2cans1string), pinned by the plain-English home-page test.
+- Committed and merged `feature/demo-polish` into `main`, including the Impeccable design tooling
+  (`.claude/`, `.github/` skills and agents).
 
 ### 2026-11-22 (later still) — First deploy: https://2cans1string.com is live
 
@@ -94,7 +112,7 @@ on by default (Q16) and keep the random board names (Q17).
 ### 2026-11-22 — Terminal-to-terminal trial, then the demo brief, built over the board — `feature/demo-polish`
 
 **How it ran.** Two Claude Code terminals on the product owner's machine used the product itself:
-term-a (lead, in the Code Xray repo) and term-b (this repo's session, helper) on the board
+term-a (lead, in another repo) and term-b (this repo's session, helper) on the board
 "Terminal-to-terminal test". The first round trip worked first time. `Zoë & "café" #42 – 100% ✓`
 survived both directions intact. term-a then posted a build brief (#7–#9), which the product owner
 approved. term-b built it, posted a one-line update per item, and term-a tested each one from
@@ -294,7 +312,7 @@ resolved by the design; Q8, Q9, Q11–Q14 open.
 
 ### 2026-11-22 — Repository init — on `main`, no product code
 
-Set up the repository structure modelled on the product owner's CodeXrayProto1 project (an
+Set up the repository structure modelled on another of the product owner's projects (an
 unrelated product; only its *way of working* was copied): `ai-context/` as agent working memory,
 `docs/` for normative design, ADRs immutable once accepted, `progress.md` updated every session,
 `how to run.txt` for copy-paste commands. Seeded `open-questions.md` with the questions the brief

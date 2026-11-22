@@ -1,6 +1,6 @@
 # Architecture summary
 
-> **Proposed v1 design, 2026-11-22 — awaiting the product owner's review.** The normative docs are
+> **v1, built and live at https://2cans1string.com since 2026-11-22; the ADRs are still Proposed.** The normative docs are
 > `docs/architecture/` and `docs/design/`; if this summary disagrees with them, they win and this is
 > fixed.
 
