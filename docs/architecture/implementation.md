@@ -69,7 +69,15 @@ superglobals (path relative to `base_url`'s path, lower-cased; raw query untouch
 
 **Deployment layouts.** `public/index.php` looks for the app beside `public/` (layout 1: code outside
 the web root) and otherwise in `public/app/` (layout 2: hosts that only allow uploads into the web
-root, with `app/.htaccess` = `Require all denied`). `how to run.txt` §3 has the steps.
+root, with `app/.htaccess` from `deploy/app.htaccess`). The full guide is
+[docs/deploy.md](../deploy.md).
+
+*Added 2026-11-22 (demo brief C):* `public/.htaccess` redirects HTTP→HTTPS (proxy-aware, skips
+localhost) and refuses dotfiles. `public/.user.ini` turns error display off for FastCGI/FPM hosts.
+`deploy/app.htaccess` is the layout-2 lock. `bin/purge.php` is the optional cron (CLI only).
+`dev/package.ps1` builds `build/upload/` for either layout. `tests/smoke.ps1 -Base <url>` is the
+end-to-end check against a running site. The dev front controller also refuses dotfiles, so local
+behaves like Apache.
 
 Namespaces: `Cans\Http`, `Cans\Domain`, `Cans\Agent`, `Cans\Web`, `Cans\Probe`. `declare(strict_types=1);`
 in every file.

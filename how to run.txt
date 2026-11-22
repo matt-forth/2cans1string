@@ -43,33 +43,40 @@ config.local.php>. If MySQL isn't running, the probe still answers but says it
 could not record the visit.
 
 
-3. DEPLOY TO THE HOSTING PROVIDER (first time)
-----------------------------------------------
-a) In the host's control panel: create a MySQL database and user. Note the
-   host name, database name, user and password.
-b) Load C:\MATT\VS\2cans1string\db\schema.sql into it (phpMyAdmin > Import, or
-   the panel's SQL tool).
-c) Make config.local.php for the host: copy config.local.php.example, set
-   base_url to the public https address (e.g. https://cans.yourdomain.com, or
-   https://yourdomain.com/cans if it lives in a sub-folder), the db settings
-   from (a), and two new long random strings for secret and probe_key. Keep a
-   copy of probe_key - you need it to read the probe log.
-d) Upload, keeping this layout:
-     Layout 1 (preferred - app code outside the web root):
-       web root (e.g. public_html/)  <- contents of public\  (index.php, .htaccess, robots.txt, assets\)
-       one level ABOVE the web root  <- src\, config.default.php, config.local.php
-     Layout 2 (host only lets you upload into the web root):
-       web root                      <- contents of public\
-       web root\app\                 <- src\, config.default.php, config.local.php
-       and create web root\app\.htaccess containing the single line:
-         Require all denied
-   index.php finds the code in either place by itself.
-e) Check: open https://<your address>/probe?tool=browser - you should see the
-   four-step instructions. Then open the step-1 link it shows. The echo must
-   NOT say "could not record". Then open
-   https://<your address>/probe/log?k=<your probe_key> - the hit is listed.
-   If you get a 500 or a blank page: the host's PHP is older than 8.2, or
-   pdo_mysql/mbstring are off - check the panel's PHP settings.
+3. DEPLOY TO THE HOSTING PROVIDER
+---------------------------------
+The full guide, with the reasons and a troubleshooting table, is
+C:\MATT\VS\2cans1string\docs\deploy.md. The short version:
+
+a) In the host's control panel: create a MySQL database and user, and make
+   sure the site has HTTPS (free Let's Encrypt certificate) and PHP 8.2+.
+b) Import C:\MATT\VS\2cans1string\db\schema.sql (phpMyAdmin > Import).
+   Existing database from an older schema? Run the files in db\upgrades
+   instead, oldest first.
+c) Build the upload folder (code beside the web root, the preferred layout):
+
+powershell -ExecutionPolicy Bypass -File C:\MATT\VS\2cans1string\dev\package.ps1
+
+   Host only allows uploads into the web root, or calls it www? Use:
+
+powershell -ExecutionPolicy Bypass -File C:\MATT\VS\2cans1string\dev\package.ps1 -Layout inside -WebRoot www
+
+d) Make the host's config.local.php from config.local.php.example and put it
+   where the script says: base_url = the public https address, db settings
+   from (a), two new long random strings for secret and probe_key (keep a
+   copy of probe_key). Save it as UTF-8 WITHOUT a BOM, or every page is a 500.
+e) Upload the contents of C:\MATT\VS\2cans1string\build\upload into your
+   hosting home folder, dotfiles (.htaccess, .user.ini) included.
+f) Smoke test it from here (every line should say pass):
+
+powershell -ExecutionPolicy Bypass -File C:\MATT\VS\2cans1string\tests\smoke.ps1 -Base https://YOUR-ADDRESS
+
+   The same test works locally:
+
+powershell -ExecutionPolicy Bypass -File C:\MATT\VS\2cans1string\tests\smoke.ps1 -Base http://localhost:9099
+
+No cron needed: expired boards are deleted as requests arrive. Optional cron
+line (deploy.md section 6): php /home/YOU/bin/purge.php
 
 
 4. RUN THE PROBE ON AN AI TOOL

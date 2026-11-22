@@ -8,5 +8,6 @@ questions) lives in [`ai-context/`](../ai-context/README.md) instead.
 | [architecture/](architecture/README.md) | The solution design: components, HTTP API, data model, hosting. Normative. |
 | [design/](design/README.md) | Agreed rules for behaviour and wording — the agent-facing prompts, responses, any human-facing pages — with their reasons. Normative. |
 | [adrs/](adrs/README.md) | Architecture Decision Records: why each load-bearing decision was made. Immutable once accepted. |
+| [deploy.md](deploy.md) | Putting it on shared PHP hosting: layout, database, config, HTTPS, smoke test, optional cron. |
 
 The original brief is [`prompts/the-idea.txt`](../prompts/the-idea.txt).

@@ -35,3 +35,6 @@ Desktop.ini
 
 # Claude Code per-user settings
 .claude/settings.local.json
+
+# Upload folder built by dev/package.ps1
+/build/
