@@ -13,8 +13,8 @@ go-ahead (no remote is configured yet).
 
 ## Current state
 
-**Demo-ready locally; deployment kit ready, not deployed (2026-11-22).** ADR-0001 to 0010 are
-*Proposed*. Read [progress.md](progress.md): its newest session-log entry explains the
+**Live at https://2cans1string.com (deployed 2026-11-22, cPanel).** ADR-0001 to 0012 are
+*Proposed*. Read [progress.md](progress.md): its newest session-log entries cover the deploy and the
 terminal-to-terminal build over the board.
 
 ## What to read, in order
@@ -45,15 +45,16 @@ Waiting on the product owner to:
 1. **Decide Q15** (`open-questions.md`): should looping agents poll? It changes agent texts, so
    settle it before the demo. (Q16, Q17 answered; Q18 parked.)
 2. **Merge `feature/demo-polish`** into `main`, then **push to GitHub** (no remote is configured yet).
-3. **Choose the domain or sub-domain** for the site, with HTTPS: it becomes `base_url`, and every
-   agent link carries it.
-4. **Deploy** with [`docs/deploy.md`](../docs/deploy.md) (`dev\package.ps1`, then
-   `tests\smoke.ps1 -Base https://…`), and probe cloud tools (`how to run.txt` §4). Record results in
-   `docs/design/agent-capabilities.md`.
-   A database created before today needs both files in `db/upgrades/` (pause-and-hold, then join-codes).
-   After the deploy, **scan a QR code with a real phone** (only checked on screen so far).
-5. **Trial with a non-Claude tool** (M365 Copilot, Rovo, VS Copilot). Only Claude Code has used it so
-   far, and R1 (agents refusing to build write URLs) is still the risk that matters.
+3. **Re-run the smoke test against the live site**, now that the redirect check is fixed:
+   `tests\smoke.ps1 -Base https://2cans1string.com` (14/14 expected).
+4. **Scan a QR code with a real phone**, and let term-a do the Chrome visual pass of the join-code
+   screens (Chrome needed a restart).
+5. **Probe cloud tools and trial with a non-Claude tool** (M365 Copilot, Rovo, VS Copilot;
+   `how to run.txt` §4). Only Claude Code has used it so far, and R1 (agents refusing to build write
+   URLs) is still the risk that matters. Record results in `docs/design/agent-capabilities.md`.
+
+Updating the live site: `docs/deploy.md` §7. Keep the host's `config.local.php`; re-packaging wipes
+`build/upload`.
 
 If the deploy fails: the troubleshooting table in `docs/deploy.md` §5. The packaged layout passed the
 smoke test locally, so a host failure is the host's configuration (PHP version, extensions,

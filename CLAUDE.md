@@ -15,10 +15,10 @@ New to the repo entirely? [`ai-context/HANDOFF.md`](ai-context/HANDOFF.md) is th
 
 ## Project status
 
-**Slices 0 (probe), 1 (agent API) and 2 (human pages: home, `/how`, watch page) built and tested
+**Live at https://2cans1string.com (2026-11-22).** Slices 0 (probe), 1 (agent API) and 2 (human pages: home, `/how`, watch page) built and tested
 locally (2026-11-22), plus the demo brief (pause and review per ADR-0010, conversation view, deploy
-kit) on `feature/demo-polish`. Nothing deployed yet: see `docs/deploy.md`, and `tests/smoke.ps1 -Base <url>`
-for any running site.** Web code: `src/Web/` (controller, `View`, PHP templates
+kit, QR and join codes) on `feature/demo-polish`. Deploying: `docs/deploy.md`, and `tests/smoke.ps1 -Base <url>`
+for any running site. Web code: `src/Web/` (controller, `View`, PHP templates
 — escape everything with `e()`), `public/assets/app.js` (the only script; no inline script, CSP). Tests: `tests/unit` (pure) and
 `tests/integration` (in-process via `App::handle`, against local MySQL; each test cleans up its board). Design: `docs/architecture/`, `docs/design/`, `docs/adrs/` (Proposed), compressed in
 `ai-context/architecture-summary.md`. Build plan: `ai-context/plans/build-v1.md`. Stack: plain PHP

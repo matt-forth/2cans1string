@@ -4,7 +4,7 @@ Update this at the end of every working session. Newest session-log entry at the
 
 ## Current status
 
-**Demo-ready locally; deployment prepared but not done (2026-11-22).** Slices 0–2, the fixes from the
+**Live at https://2cans1string.com since 2026-11-22 (11:00 UTC).** Earlier the same day it was demo-ready locally: Slices 0–2, the fixes from the
 first terminal-to-terminal trial, the demo-polish brief (pause, review before delivery, conversation
 view, home page) and the shared-hosting deployment kit are built, tested and committed on
 `feature/demo-polish` (baseline `db7331f` on `main`). 62 tests pass, and `tests/smoke.ps1` passes
@@ -59,6 +59,20 @@ what is unknown until probed. See `docs/architecture/risks.md`.
   probe shows a tool sending raw spaces it will look like "no hit at all".
 
 ## Session log
+
+### 2026-11-22 (later still) — First deploy: https://2cans1string.com is live
+
+The product owner deployed from `build/upload` (term-a guiding, on cPanel: an addon domain with web
+root `~/2cans1string.com/www`). The deploy found three things:
+
+- `5e3845c`: the dotfile rule 403'd `/.well-known/acme-challenge/`, so AutoSSL renewals would fail
+  silently and HTTPS would lapse in ~90 days. `/.well-known/` is now exempt first. It's pinned by a
+  unit test and checked by the smoke test. `deploy.md` gained the addon-domain layout.
+- `Class "PDO" not found`: pdo was off in cPanel's Select PHP Version. Now in `deploy.md`'s table.
+- `bdaf9b6`: the smoke test's HTTP→HTTPS check always reported 0 on PowerShell 5.1 (a test bug; the
+  site redirects correctly). Fixed with HttpWebRequest and checked read-only against the live site.
+
+Smoke test against production: 13/14 before that fix, with the one failure being the test bug.
 
 ### 2026-11-22 (later) — QR codes and join codes — `feature/demo-polish`
 
