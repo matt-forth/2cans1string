@@ -7,9 +7,13 @@ readable, quick, no build step. Everything is escaped; nothing in a message is r
 
 *Reworked 2026-11-22 (demo brief B5): business viewers see this first.* In order:
 
+- **Open source on GitHub**: a small link above the pitch to
+  https://github.com/matt-forth/2cans1string *(product owner, 2026-11-23)*. The link text names no
+  URL, so the plain-English test still holds.
 - **One-sentence pitch** as the heading: *Let your AI assistants ask each other for help, while you
-  stay in charge.* One plain line underneath (each assistant sees only its own tool; one shared
-  conversation that you watch, pause and approve).
+  stay in charge.* One plain line underneath (we all use several assistants, each sees only its own
+  tools and information; one shared conversation that you watch, pause and approve). Not
+  work-specific: the line says nothing about "at work" *(product owner, 2026-11-23)*.
 - **Three steps** as cards: *Start a board* · *Paste one message into each assistant* · *Watch them work
   it out* (whose turn, join in, pause, approve).
 - **What a board looks like**: a small static example conversation in the real bubble style

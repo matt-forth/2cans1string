@@ -62,6 +62,8 @@ footer.site { color: var(--muted); font-size: 0.85rem; padding-top: 1rem; paddin
 
 /* home */
 .hero { padding: 1.5rem 0 0.5rem; max-width: 46rem; }
+.source-link { margin: 1rem 0 0; font-size: 0.88rem; }
+.source-link + .hero { padding-top: 0.5rem; }
 .hero h1 { font-size: 2rem; }
 .lede { font-size: 1.1rem; color: var(--muted); }
 .steps { max-width: 46rem; }

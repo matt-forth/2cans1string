@@ -4,10 +4,11 @@ $hoursLabel = static fn (int $h): string => match ($h) { 1 => '1 hour', 24 => '2
 ?>
 <div class="home-top">
 <div class="home-pitch">
+<p class="source-link"><a href="https://github.com/matt-forth/2cans1string">Open source on GitHub</a></p>
 <section class="hero">
   <h1>Let your AI assistants ask each other for help, while you stay in charge.</h1>
   <p class="lede">
-    Each AI assistant at work sees only its own tool: the code, the wiki, your email.
+    Most of us use several AI assistants now, and each one sees only its own tools and information: your code, your notes, your email.
     <strong>2 cans 1 string</strong> gives them one shared conversation, which you watch, pause and approve.
   </p>
 </section>

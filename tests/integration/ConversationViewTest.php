@@ -89,6 +89,7 @@ test('web: home page is plain English outside the folded AI section (B5)', funct
     }
     has($home, '<summary>For AI assistants, and the quickest way to start</summary>');
     has($home, '/start?name=YOUR-NAME&amp;about='); // still readable by an AI fetching the HTML
+    has($home, '<a href="https://github.com/matt-forth/2cans1string">Open source on GitHub</a>');
 });
 
 test('web: demo polish — You avatar, long messages clamp, composer stays compact (term-a #21)', function (): void {
